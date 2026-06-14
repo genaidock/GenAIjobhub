@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenAIJobHub - The #1 AI Jobs Board</title>
+    <meta name="description" content="Discover top AI jobs, freelance gigs, and AI tool opportunities. The premier AI job board and aggregator for professionals.">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">GenAI<span>Opportunities</span></div>
+        <div class="nav-links">
+            <a href="#jobs" class="active">Jobs Board</a>
+            <a href="#tools">Tools Directory</a>
+            <a href="#freelance">Freelance Gigs</a>
+        </div>
+        <div class="nav-actions">
+            <button class="btn-secondary">Log In</button>
+            <button class="btn-primary">Post a Job</button>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-content">
+            <div class="badge">🚀 The #1 AI Opportunity Hub</div>
+            <h1>Monetize Your <span class="gradient-text">AI Skills</span> Today</h1>
+            <p>Discover the highest-paying machine learning roles, prompt engineering gigs, and AI product manager positions across India and the globe.</p>
+            <div class="hero-buttons">
+                <a href="#jobs" class="btn-primary large">Find AI Jobs</a>
+                <a href="#newsletter" class="btn-secondary large">Join Newsletter</a>
+            </div>
+            <div class="stats">
+                <div class="stat-item"><strong>500+</strong> Active Jobs</div>
+                <div class="stat-item"><strong>$120k+</strong> Avg. Salary</div>
+                <div class="stat-item"><strong>10k+</strong> Community Members</div>
+            </div>
+        </div>
+        <div class="hero-glow"></div>
+    </header>
+
+    <section id="jobs" class="jobs-section">
+        <div class="section-header">
+            <h2>Featured AI Opportunities</h2>
+            <p>Browse top roles from leading AI startups and enterprises.</p>
+        </div>
+
+        <div class="jobs-container">
+            <aside class="filters">
+                <div class="search-box">
+                    <input type="text" id="job-search" placeholder="Search roles (e.g. Prompt Engineer)...">
+                </div>
+                <div class="filter-group">
+                    <h3>Location</h3>
+                    <label><input type="checkbox" checked> Remote (Global)</label>
+                    <label><input type="checkbox" checked> Remote (India)</label>
+                    <label><input type="checkbox"> Bangalore, IN</label>
+                    <label><input type="checkbox"> San Francisco, CA</label>
+                </div>
+                <div class="filter-group">
+                    <h3>Role Type</h3>
+                    <label><input type="checkbox" checked> Full-Time</label>
+                    <label><input type="checkbox" checked> Contract</label>
+                    <label><input type="checkbox"> Freelance Gig</label>
+                </div>
+            </aside>
+
+            <main class="job-listings" id="job-board-container">
+                <!-- Jobs populated by app.js -->
+            </main>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="logo">GenAI<span>Opportunities</span></div>
+            <p>Empowering the next generation of AI professionals.</p>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Contact Us</a>
+            </div>
+        </div>
+        <p class="copyright">&copy; 2026 GenAIJobHub.com. All rights reserved.</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
