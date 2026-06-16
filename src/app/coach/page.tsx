@@ -30,6 +30,11 @@ export default function CareerCoach() {
     e.preventDefault();
     if (!resume || !targetRole) return;
 
+    if (!user) {
+      window.location.href = '/login/seeker?redirect=/coach';
+      return;
+    }
+
     setIsLoading(true);
     setFeedback('');
 
@@ -138,7 +143,7 @@ export default function CareerCoach() {
                 disabled={isLoading}
                 className="w-full py-4 rounded-xl font-bold text-lg text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-1 shadow-[0_4px_15px_rgba(109,40,217,0.35)] hover:shadow-[0_8px_25px_rgba(109,40,217,0.45)] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
-                {isLoading ? 'Analyzing Resume...' : 'Get AI Feedback'}
+                {!user ? 'Log in to Get AI Feedback' : isLoading ? 'Analyzing Resume...' : 'Get AI Feedback'}
               </button>
             </form>
           </div>
