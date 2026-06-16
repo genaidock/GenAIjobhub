@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 
 export default function CVBuilder() {
   const router = useRouter();
@@ -56,10 +57,12 @@ export default function CVBuilder() {
     try {
       const formData = new FormData();
       formData.append('cv_file', file);
-      formData.append('user_id', user.id);
 
       const res = await fetch('/api/generate-cv', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
         body: formData,
       });
 

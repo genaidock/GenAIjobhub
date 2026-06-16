@@ -4,6 +4,27 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import ApplyButton from './ApplyButton';
 
+function CompanyLogo({ domain, companyName }: { domain: string | null, companyName: string }) {
+  const [error, setError] = useState(false);
+
+  if (!domain || error) {
+    return (
+      <span className="text-2xl font-bold text-accent-primary">
+        {companyName ? companyName.charAt(0).toUpperCase() : '?'}
+      </span>
+    );
+  }
+
+  return (
+    <img 
+      src={`https://logo.clearbit.com/${domain}`} 
+      alt={`${companyName} logo`} 
+      className="w-full h-full object-cover"
+      onError={() => setError(true)}
+    />
+  );
+}
+
 export default function JobsBoardClient({ initialJobs }: { initialJobs: any[] }) {
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -235,22 +256,7 @@ export default function JobsBoardClient({ initialJobs }: { initialJobs: any[] })
                   <div className="flex gap-6 w-full md:w-auto items-start">
                     {/* Company Logo */}
                     <div className="w-16 h-16 rounded-xl bg-background border border-border-light flex-shrink-0 flex items-center justify-center overflow-hidden shadow-sm">
-                      {domain ? (
-                        <img 
-                          src={`https://logo.clearbit.com/${domain}`} 
-                          alt={`${job.company_name} logo`} 
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            // Fallback to initial if logo fails to load
-                            e.currentTarget.style.display = 'none';
-                            e.currentTarget.parentElement!.innerHTML = `<span class="text-2xl font-bold text-accent-primary">${job.company_name.charAt(0).toUpperCase()}</span>`;
-                          }}
-                        />
-                      ) : (
-                        <span className="text-2xl font-bold text-accent-primary">
-                          {job.company_name ? job.company_name.charAt(0).toUpperCase() : '?'}
-                        </span>
-                      )}
+                      <CompanyLogo domain={domain} companyName={job.company_name} />
                     </div>
                     
                     <div className="flex-1">

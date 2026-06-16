@@ -1,8 +1,27 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+// Simple in-memory rate limit for demo/audit purposes
+const rateLimitMap = new Map<string, { count: number, lastReset: number }>();
+
 export async function POST(request: Request) {
   try {
+    // Rate Limiting Check
+    const ip = request.headers.get('x-forwarded-for') || 'unknown';
+    const now = Date.now();
+    const windowMs = 60 * 1000; // 1 minute
+    const maxRequests = 10; // Allow 10 applies per minute
+
+    let record = rateLimitMap.get(ip);
+    if (!record || now - record.lastReset > windowMs) {
+      rateLimitMap.set(ip, { count: 1, lastReset: now });
+    } else {
+      if (record.count >= maxRequests) {
+        return NextResponse.json({ error: "Too Many Requests" }, { status: 429 });
+      }
+      record.count += 1;
+    }
+
     const { job_id } = await request.json();
     
     if (!job_id) {

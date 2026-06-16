@@ -1,12 +1,48 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || 'dummy-key', // Prevent crash if key is entirely missing
 });
 
+// Simple in-memory rate limit for demo/audit purposes
+const rateLimitMap = new Map<string, { count: number, lastReset: number }>();
+
 export async function POST(req: Request) {
   try {
+    // Auth Check
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return NextResponse.json({ error: "Unauthorized: Please log in" }, { status: 401 });
+    }
+    
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(authHeader.replace('Bearer ', ''));
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized: Invalid or expired token" }, { status: 401 });
+    }
+
+    // Rate Limiting Check
+    const ip = req.headers.get('x-forwarded-for') || 'unknown';
+    const now = Date.now();
+    const windowMs = 60 * 1000; // 1 minute
+    const maxRequests = 5;
+
+    let record = rateLimitMap.get(ip);
+    if (!record || now - record.lastReset > windowMs) {
+      rateLimitMap.set(ip, { count: 1, lastReset: now });
+    } else {
+      if (record.count >= maxRequests) {
+        return NextResponse.json({ error: "Too Many Requests" }, { status: 429 });
+      }
+      record.count += 1;
+    }
+
     const { resume, targetRole } = await req.json();
 
     if (!resume || !targetRole) {

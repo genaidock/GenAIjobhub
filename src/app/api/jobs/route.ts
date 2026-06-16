@@ -1,11 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize Supabase with the SERVICE_ROLE_KEY to bypass RLS securely on the backend
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 export async function POST(req: Request) {
   try {
@@ -26,19 +21,32 @@ export async function POST(req: Request) {
     // Basic sanitization
     const sanitizedDescription = jobData.description.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
 
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll()
+          },
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+            } catch (_) {}
+          },
+        },
+      }
+    );
+
     // Auth Check
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      return NextResponse.json({ error: "Unauthorized: Please log in to post a job" }, { status: 401 });
-    }
-    
-    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(authHeader.replace('Bearer ', ''));
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized: Invalid or expired token" }, { status: 401 });
     }
 
     // Verify user is an employer
-    const { data: profileData, error: profileError } = await supabaseAdmin
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('user_type')
       .eq('id', user.id)
@@ -51,12 +59,8 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY === 'your_service_role_key_here') {
-      return NextResponse.json({ error: "Server is not configured properly (Missing Service Role Key)" }, { status: 500 });
-    }
-
     // Insert the job into the database
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from('jobs')
       .insert([
         {

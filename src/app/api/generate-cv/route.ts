@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import * as pdfParseMod from 'pdf-parse';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 // Handle CommonJS export difference
 const pdfParse = (pdfParseMod as any).default || pdfParseMod;
@@ -10,23 +11,40 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 export async function POST(req: Request) {
   try {
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll()
+          },
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+            } catch (_) {}
+          },
+        },
+      }
+    );
+
+    const authHeader = req.headers.get('authorization');
+    
+    // Auth Check
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader ? authHeader.replace('Bearer ', '') : undefined);
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized: Invalid or expired token" }, { status: 401 });
+    }
+
     const formData = await req.formData();
     const file = formData.get('cv_file') as File;
-    const userId = formData.get('user_id') as string;
+    const userId = user.id;
 
     if (!file) {
       return NextResponse.json({ error: 'No CV file provided' }, { status: 400 });
-    }
-
-    if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
     // Convert file to Buffer for pdf-parse
@@ -78,7 +96,7 @@ ${parsedText}
     const generatedCV = response.choices[0].message.content || '';
 
     // Save to database
-    const { data: insertedCV, error: dbError } = await supabaseAdmin
+    const { data: insertedCV, error: dbError } = await supabase
       .from('generated_cvs')
       .insert({
         user_id: userId,

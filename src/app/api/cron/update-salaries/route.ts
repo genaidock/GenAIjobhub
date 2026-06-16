@@ -16,8 +16,8 @@ export const revalidate = 0; // Prevent caching
 export async function GET(req: Request) {
   try {
     // In production, verify cron secret
-    // const authHeader = req.headers.get('authorization');
-    // if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) return new Response('Unauthorized', { status: 401 });
+    const authHeader = req.headers.get('authorization');
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) return new Response('Unauthorized', { status: 401 });
 
     const coreRoles = [
       "Prompt Engineer", "AI Product Manager", "Machine Learning Engineer", 

@@ -32,6 +32,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid payment signature' }, { status: 400 });
     }
 
+    // Verify job ID matches the order details directly from Razorpay
+    const response = await fetch(`https://${process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID}:${key_secret}@api.razorpay.com/v1/orders/${razorpay_order_id}`);
+    if (!response.ok) {
+      return NextResponse.json({ error: 'Failed to fetch order details from Razorpay' }, { status: 500 });
+    }
+    const orderDetails = await response.json();
+    
+    if (orderDetails.notes?.job_id !== job_id) {
+       return NextResponse.json({ error: 'Tampered job_id detected' }, { status: 400 });
+    }
+
     // Payment is verified! Update the job to be featured
     const { error: updateError } = await supabaseAdmin
       .from('jobs')
