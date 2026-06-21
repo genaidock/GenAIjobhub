@@ -82,3 +82,20 @@ CREATE POLICY "Users can delete their own CVs" ON public.generated_cvs FOR DELET
 
 -- Add slug to forum categories for more robust routing
 ALTER TABLE public.forum_categories ADD COLUMN IF NOT EXISTS slug TEXT UNIQUE;
+
+-- Create proposals table
+CREATE TABLE IF NOT EXISTS public.proposals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    gig_id UUID REFERENCES public.gigs(id) ON DELETE CASCADE NOT NULL,
+    freelancer_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    cover_letter TEXT NOT NULL,
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'reviewed', 'accepted', 'rejected')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(gig_id, freelancer_id)
+);
+ALTER TABLE public.proposals ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Freelancers can view own proposals" ON public.proposals FOR SELECT USING (auth.uid() = freelancer_id);
+CREATE POLICY "Freelancers can insert own proposals" ON public.proposals FOR INSERT WITH CHECK (auth.uid() = freelancer_id);
+CREATE POLICY "Clients can view proposals for their gigs" ON public.proposals FOR SELECT USING (
+  EXISTS (SELECT 1 FROM public.gigs WHERE gigs.id = proposals.gig_id AND gigs.employer_id = auth.uid())
+);

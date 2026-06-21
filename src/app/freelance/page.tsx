@@ -1,5 +1,7 @@
-import { supabase } from '@/lib/supabase';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import Link from 'next/link';
+import ProposalButton from '@/components/ProposalButton';
 
 export const metadata = {
   title: "AI Freelance Gigs | GenAIJobHub — Find Short-Term AI Contract Work",
@@ -9,6 +11,45 @@ export const metadata = {
 export const revalidate = 0;
 
 export default async function FreelanceBoard() {
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll() },
+        setAll(cookiesToSet) {
+          try { cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options)) } catch (_) {}
+        },
+      },
+    }
+  );
+
+  const { data: { session } } = await supabase.auth.getSession();
+  let isSeeker = false;
+  let userProposals: any[] = [];
+
+  if (session) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('user_type')
+      .eq('id', session.user.id)
+      .single();
+    
+    isSeeker = profile?.user_type === 'seeker';
+
+    if (isSeeker) {
+      const { data: proposals } = await supabase
+        .from('proposals')
+        .select('gig_id')
+        .eq('freelancer_id', session.user.id);
+      
+      if (proposals) {
+        userProposals = proposals;
+      }
+    }
+  }
+
   const { data: gigs } = await supabase
     .from('gigs')
     .select('*')
@@ -45,37 +86,43 @@ export default async function FreelanceBoard() {
              </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {gigs.map((gig) => (
-                <div key={gig.id} className="card-light p-8 flex flex-col relative overflow-hidden">
-                  {gig.is_urgent && (
-                     <div className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold px-4 py-1 rounded-bl-lg">
-                       URGENT
-                     </div>
-                  )}
-                  
-                  <div className="flex justify-between items-start mb-4">
-                    <span className="pill pill-purple font-bold text-sm">
-                      {gig.budget}
-                    </span>
-                    <span className="pill pill-blue text-sm">
-                      ⏱ {gig.estimated_duration}
-                    </span>
-                  </div>
-                  
-                  <h3 className="text-xl md:text-2xl font-bold mb-3 text-text-dark pr-12">{gig.title}</h3>
-                  <p className="text-text-dark-secondary text-sm mb-6 flex-grow leading-relaxed">{gig.description}</p>
-                  
-                  <div className="flex items-center justify-between border-t border-border-light pt-5 mt-auto">
-                    <div className="text-sm text-text-dark-secondary">
-                      Client: <span className="font-semibold text-text-dark">{gig.client_name}</span>
+              {gigs.map((gig) => {
+                const hasApplied = userProposals.some(p => p.gig_id === gig.id);
+
+                return (
+                  <div key={gig.id} className="card-light p-8 flex flex-col relative overflow-hidden">
+                    {gig.is_urgent && (
+                       <div className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold px-4 py-1 rounded-bl-lg">
+                         URGENT
+                       </div>
+                    )}
+                    
+                    <div className="flex justify-between items-start mb-4">
+                      <span className="pill pill-purple font-bold text-sm">
+                        {gig.budget}
+                      </span>
+                      <span className="pill pill-blue text-sm">
+                        ⏱ {gig.estimated_duration}
+                      </span>
                     </div>
-                    {/* Assuming gig.apply_url might exist in the future, otherwise just show a button */}
-                    <button disabled className="px-6 py-2.5 rounded-lg font-semibold text-sm text-text-dark-tertiary bg-slate-100 border border-border-light cursor-not-allowed">
-                      Coming Soon
-                    </button>
+                    
+                    <h3 className="text-xl md:text-2xl font-bold mb-3 text-text-dark pr-12">{gig.title}</h3>
+                    <p className="text-text-dark-secondary text-sm mb-6 flex-grow leading-relaxed">{gig.description}</p>
+                    
+                    <div className="flex items-center justify-between border-t border-border-light pt-5 mt-auto">
+                      <div className="text-sm text-text-dark-secondary">
+                        Client: <span className="font-semibold text-text-dark">{gig.client_name}</span>
+                      </div>
+                      <ProposalButton 
+                        gigId={gig.id} 
+                        gigTitle={gig.title} 
+                        hasApplied={hasApplied}
+                        isSeeker={isSeeker}
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
