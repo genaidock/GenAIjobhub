@@ -11,6 +11,8 @@ export default async function Home() {
     .from('jobs')
     .select('*')
     .eq('is_featured', true)
+    .or('is_api_fetched.eq.true,moderation_status.eq.approved')
+    .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString())
     .order('created_at', { ascending: false })
     .limit(3);
 

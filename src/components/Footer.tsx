@@ -36,7 +36,7 @@ export default function Footer() {
             <ul className="flex flex-col gap-3">
               <li><Link href="/jobs" className="text-text-secondary text-sm hover:text-white transition-colors">Jobs Board</Link></li>
               <li><Link href="/freelance" className="text-text-secondary text-sm hover:text-white transition-colors">Freelance Gigs</Link></li>
-              <li><Link href="/salaries" className="text-text-secondary text-sm hover:text-white transition-colors">Salary Explorer</Link></li>
+              <li><Link href="/news" className="text-text-secondary text-sm hover:text-white transition-colors">AI News</Link></li>
               <li><Link href="/post-job" className="text-text-secondary text-sm hover:text-white transition-colors">Post a Job</Link></li>
             </ul>
           </div>
@@ -45,10 +45,10 @@ export default function Footer() {
           <div>
             <h4 className="text-sm font-bold text-text-primary uppercase tracking-wider mb-5">Resources</h4>
             <ul className="flex flex-col gap-3">
-              <li><Link href="/coach" className="text-text-secondary text-sm hover:text-white transition-colors">AI Career Coach</Link></li>
               <li><Link href="/tools" className="text-text-secondary text-sm hover:text-white transition-colors">AI Tools</Link></li>
-              <li><Link href="#newsletter" className="text-text-secondary text-sm hover:text-white transition-colors">Newsletter</Link></li>
+              <li><Link href="/salaries" className="text-text-secondary text-sm hover:text-white transition-colors">Salary Explorer</Link></li>
               <li><Link href="/blog" className="text-text-secondary text-sm hover:text-white transition-colors">Blog</Link></li>
+              <li><Link href="#newsletter" className="text-text-secondary text-sm hover:text-white transition-colors">Newsletter</Link></li>
             </ul>
           </div>
 

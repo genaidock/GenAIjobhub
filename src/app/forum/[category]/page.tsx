@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation';
 
 export const revalidate = 0;
 
-export default async function ForumCategoryPage({ params }: { params: { category: string } }) {
+export default async function ForumCategoryPage({ params }: { params: Promise<{ category: string }> }) {
+  const { category: categoryParam } = await params;
   // Try to match the slug to a category name.
   // The slug is lowercase with hyphens, e.g., 'ai-tools-models'
   
@@ -17,7 +18,7 @@ export default async function ForumCategoryPage({ params }: { params: { category
     return notFound();
   }
 
-  const category = categories.find(c => c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === params.category);
+  const category = categories.find(c => c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === categoryParam);
   
   if (!category) return notFound();
 

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { Star } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 // Dynamically load Razorpay script
 const loadRazorpayScript = () => {
@@ -17,8 +18,9 @@ const loadRazorpayScript = () => {
   });
 };
 
-export default function PostJob() {
+function PostJobContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -31,18 +33,10 @@ export default function PostJob() {
       if (!user) {
         router.replace('/login/employer?redirect=/post-job');
       } else if (userType !== 'employer') {
-        router.replace('/coach');
+        router.replace('/jobs');
       }
     }
   }, [user, userType, authLoading, router]);
-
-  if (authLoading || !user || userType !== 'employer') {
-    return (
-      <div className="flex items-center justify-center min-h-[70vh]">
-        <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   const [formData, setFormData] = useState({
     title: '',
@@ -52,9 +46,53 @@ export default function PostJob() {
     salary_range: '',
     description: '',
     apply_url: '',
+    validity_days: '30', // Default validity is 30 days
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  // Repost logic: prefill form if ?repost=[id] is in query parameters
+  useEffect(() => {
+    const repostId = searchParams.get('repost');
+    if (repostId && user) {
+      async function fetchRepostJob() {
+        try {
+          const { data: job, error: fetchErr } = await supabase
+            .from('jobs')
+            .select('*')
+            .eq('id', repostId)
+            .single();
+
+          if (fetchErr) throw fetchErr;
+
+          if (job) {
+            setFormData({
+              title: job.title || '',
+              company_name: job.company_name || '',
+              location: job.location || '',
+              is_remote: job.is_remote ?? true,
+              salary_range: job.salary_range || '',
+              description: job.description || '',
+              apply_url: job.apply_url || '',
+              validity_days: '30', // Reset to default 30 days for the new listing
+            });
+          }
+        } catch (err: any) {
+          console.error("Failed to fetch job for reposting:", err.message);
+          setError("Failed to prefill job details for reposting.");
+        }
+      }
+      fetchRepostJob();
+    }
+  }, [user, searchParams]);
+
+  if (authLoading || !user || userType !== 'employer') {
+    return (
+      <div className="flex items-center justify-center min-h-[70vh]">
+        <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     
     // Type narrowing for checkbox vs other inputs
@@ -284,14 +322,29 @@ export default function PostJob() {
                 This is a fully remote role
               </label>
 
-              <div>
-                <label className="block text-sm font-bold text-text-dark-secondary mb-2">Application URL (Optional)</label>
-                <input 
-                  type="url" name="apply_url"
-                  placeholder="https://your-company.com/careers/apply" 
-                  className="input-light"
-                  value={formData.apply_url} onChange={handleChange}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-bold text-text-dark-secondary mb-2">Application URL (Optional)</label>
+                  <input 
+                    type="url" name="apply_url"
+                    placeholder="https://your-company.com/careers/apply" 
+                    className="input-light"
+                    value={formData.apply_url} onChange={handleChange}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-text-dark-secondary mb-2">Job Listing Validity *</label>
+                  <select 
+                    name="validity_days" required
+                    className="input-light"
+                    value={formData.validity_days} onChange={handleChange}
+                  >
+                    <option value="10">10 Days</option>
+                    <option value="15">15 Days</option>
+                    <option value="30">30 Days</option>
+                    <option value="45">45 Days (Max)</option>
+                  </select>
+                </div>
               </div>
 
               <div>
@@ -358,3 +411,16 @@ export default function PostJob() {
     </div>
   );
 }
+
+export default function PostJob() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[70vh]">
+        <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <PostJobContent />
+    </Suspense>
+  );
+}
+

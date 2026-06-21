@@ -6,6 +6,7 @@ import { useAuth } from '@/components/AuthProvider';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Check, Copy } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export default function CareerCoach() {
   const [resume, setResume] = useState('');
@@ -36,9 +37,14 @@ export default function CareerCoach() {
     setFeedback('');
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
       const response = await fetch('/api/coach', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(session ? { 'Authorization': `Bearer ${session.access_token}` } : {})
+        },
         body: JSON.stringify({ resume, targetRole }),
       });
 

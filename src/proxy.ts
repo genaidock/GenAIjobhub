@@ -57,7 +57,7 @@ export async function proxy(request: NextRequest) {
 
     if (needsEmployer && userType !== 'employer') {
       // Seeker trying employer route → their dashboard
-      return NextResponse.redirect(new URL('/coach', request.url));
+      return NextResponse.redirect(new URL('/jobs', request.url));
     }
 
     if (needsSeeker && userType !== 'seeker') {

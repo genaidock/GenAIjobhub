@@ -7,7 +7,11 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     plan TEXT DEFAULT 'free' CHECK (plan IN ('free', 'pro', 'elite')),
     coach_credits_remaining INTEGER DEFAULT 1,
     coach_credits_reset_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    user_type TEXT,
+    full_name TEXT,
+    company_name TEXT,
+    linkedin_url TEXT
 );
 
 -- Enable Row Level Security (RLS)
@@ -22,8 +26,26 @@ USING (auth.uid() = id);
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, plan, coach_credits_remaining)
-  VALUES (new.id, new.email, 'free', 1);
+  INSERT INTO public.profiles (
+    id, 
+    email, 
+    plan, 
+    coach_credits_remaining,
+    user_type,
+    full_name,
+    company_name,
+    linkedin_url
+  )
+  VALUES (
+    new.id, 
+    new.email, 
+    'free', 
+    1,
+    new.raw_user_meta_data->>'user_type',
+    new.raw_user_meta_data->>'full_name',
+    new.raw_user_meta_data->>'company_name',
+    new.raw_user_meta_data->>'linkedin_url'
+  );
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

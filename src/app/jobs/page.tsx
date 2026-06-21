@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import JobsBoardClient from '@/components/JobsBoardClient';
+import { Info } from 'lucide-react';
 
 export const metadata = {
   title: "Browse AI Jobs | GenAIJobHub — ML, Prompt Engineering, AI Product Roles",
@@ -12,6 +13,8 @@ export default async function JobsBoard() {
   const { data: jobs } = await supabase
     .from('jobs')
     .select('*')
+    .or('is_api_fetched.eq.true,moderation_status.eq.approved')
+    .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString())
     .order('is_featured', { ascending: false })
     .order('created_at', { ascending: false });
 
@@ -36,6 +39,15 @@ export default async function JobsBoard() {
       {/* Light Content Area */}
       <section className="section-light w-full pb-20 px-[5%]">
         <div className="max-w-[1200px] w-full mx-auto">
+          {/* Disclaimer Banner */}
+          <div className="flex gap-3 items-center p-4 bg-slate-50 border border-slate-200/60 rounded-xl text-xs text-text-dark-secondary mb-6">
+            <Info className="w-4 h-4 text-accent-primary shrink-0" />
+            <span>
+              <strong>Note:</strong> Some opportunities on this board are sourced from external sites. 
+              While we sync postings daily, active statuses or application link changes on those platforms may not reflect here immediately.
+            </span>
+          </div>
+
           {/* Client Component for interactive filtering */}
           <JobsBoardClient initialJobs={jobs || []} />
         </div>

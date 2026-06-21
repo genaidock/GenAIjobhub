@@ -5,12 +5,13 @@ import CommentForm from './CommentForm';
 
 export const revalidate = 0;
 
-export default async function ForumPostPage({ params }: { params: { id: string } }) {
+export default async function ForumPostPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   // Fetch post with author and category
   const { data: post } = await supabase
     .from('forum_posts')
     .select('*, author:profiles(full_name, user_type), category:forum_categories(name)')
-    .eq('id', params.id)
+    .eq('id', id)
     .single();
 
   if (!post) return notFound();

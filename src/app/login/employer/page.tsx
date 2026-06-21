@@ -7,7 +7,7 @@ import { ArrowLeft, Briefcase, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Turnstile } from '@marsidev/react-turnstile';
 
-type Mode = 'login' | 'signup';
+type Mode = 'login' | 'signup' | 'otp';
 
 function EmployerAuthContent() {
   const router = useRouter();
@@ -20,6 +20,7 @@ function EmployerAuthContent() {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [otpToken, setOtpToken] = useState('');
 
   const [form, setForm] = useState({
     full_name: '',
@@ -63,8 +64,17 @@ function EmployerAuthContent() {
         });
 
         if (error) throw error;
-        setSuccessMsg('Account created! Check your email to verify, then log in.');
-        setMode('login');
+        setSuccessMsg('Account created! Check your email for the 8-digit verification code.');
+        setMode('otp');
+      } else if (mode === 'otp') {
+        if (!otpToken.trim()) throw new Error('Please enter the OTP.');
+        const { error } = await supabase.auth.verifyOtp({
+          email: form.email,
+          token: otpToken.trim(),
+          type: 'signup',
+        });
+        if (error) throw error;
+        router.push(redirectTo);
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email: form.email,
@@ -110,14 +120,18 @@ function EmployerAuthContent() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-text-primary">
-              {mode === 'login' ? 'Employer Login' : 'Create Employer Account'}
+              {mode === 'otp' ? 'Verify Email' : mode === 'login' ? 'Employer Login' : 'Create Employer Account'}
             </h1>
-            <p className="text-text-secondary text-xs">Post AI jobs · Manage listings</p>
+            <p className="text-text-secondary text-xs">
+              {mode === 'otp' ? 'Enter the code sent to your email' : 'Post AI jobs · Manage listings'}
+            </p>
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 mb-6">
-          <button
+        {mode !== 'otp' && (
+          <>
+            <div className="flex flex-col gap-3 mb-6">
+              <button
             onClick={() => handleOAuth('google')}
             type="button"
             className="flex items-center justify-center gap-3 w-full p-3 rounded-xl border border-border bg-background hover:bg-white/5 transition-all text-sm font-semibold text-text-primary"
@@ -141,9 +155,26 @@ function EmployerAuthContent() {
           <span className="flex-shrink-0 mx-4 text-text-secondary text-xs uppercase font-medium">Or continue with email</span>
           <div className="flex-grow border-t border-border"></div>
         </div>
+          </>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {mode === 'signup' && (
+          {mode === 'otp' ? (
+            <div>
+              <label className="block text-sm font-bold text-text-secondary mb-2">8-Digit Code *</label>
+              <input
+                type="text"
+                name="otp"
+                value={otpToken}
+                onChange={(e) => setOtpToken(e.target.value)}
+                required
+                placeholder="Enter code"
+                className="w-full p-3 bg-background border border-border rounded-xl text-white focus:outline-none focus:border-accent-primary transition-colors text-center text-2xl tracking-widest"
+              />
+            </div>
+          ) : (
+            <>
+              {mode === 'signup' && (
             <>
               <div>
                 <label className="block text-sm font-bold text-text-secondary mb-2">Your Full Name *</label>
@@ -207,6 +238,8 @@ function EmployerAuthContent() {
               </button>
             </div>
           </div>
+            </>
+          )}
 
           {error && (
             <p className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
@@ -234,19 +267,21 @@ function EmployerAuthContent() {
             disabled={isLoading || (mode === 'signup' && !turnstileToken)}
             className="w-full py-3 mt-2 rounded-xl font-bold text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:transform-none shadow-[0_4px_15px_rgba(109,40,217,0.35)]"
           >
-            {isLoading ? 'Processing...' : mode === 'login' ? 'Log In' : 'Create Account'}
+            {isLoading ? 'Processing...' : mode === 'otp' ? 'Verify OTP' : mode === 'login' ? 'Log In' : 'Create Account'}
           </button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-text-secondary">
-          {mode === 'login' ? "Don't have an employer account? " : 'Already have an account? '}
-          <button
-            onClick={() => { setMode(m => m === 'login' ? 'signup' : 'login'); setError(''); }}
-            className="text-accent-primary hover:underline font-bold"
-          >
-            {mode === 'login' ? 'Sign up free' : 'Log in'}
-          </button>
-        </div>
+        {mode !== 'otp' && (
+          <div className="mt-6 text-center text-sm text-text-secondary">
+            {mode === 'login' ? "Don't have an employer account? " : 'Already have an account? '}
+            <button
+              onClick={() => { setMode(m => m === 'login' ? 'signup' : 'login'); setError(''); }}
+              className="text-accent-primary hover:underline font-bold"
+            >
+              {mode === 'login' ? 'Sign up free' : 'Log in'}
+            </button>
+          </div>
+        )}
 
         {mode === 'login' && (
           <div className="mt-3 text-center text-sm">

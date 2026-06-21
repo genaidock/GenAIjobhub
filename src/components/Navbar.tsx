@@ -35,9 +35,14 @@ export default function Navbar() {
     ? profile.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
     : profile?.email?.[0]?.toUpperCase() ?? '?';
 
-  const displayName = userType === 'employer'
-    ? (profile?.company_name || profile?.full_name || 'Employer')
-    : (profile?.full_name || 'Job Seeker');
+  let displayName = 'Job Seeker';
+  if (userType === 'employer') {
+    displayName = profile?.company_name || profile?.full_name || 'Employer';
+  } else if (userType === 'admin') {
+    displayName = 'Admin';
+  } else {
+    displayName = profile?.full_name || 'Job Seeker';
+  }
 
   return (
     <nav className="navbar-glow flex justify-between items-center py-4 px-[5%] bg-background/80 backdrop-blur-xl sticky top-0 z-50">
@@ -52,12 +57,12 @@ export default function Navbar() {
         <Link href="/jobs" className="font-medium text-text-secondary hover:text-text-primary transition-colors text-[0.925rem]">Jobs Board</Link>
         <Link href="/forum" className="font-medium text-text-secondary hover:text-text-primary transition-colors text-[0.925rem]">Forum</Link>
         <Link href="/freelance" className="font-medium text-text-secondary hover:text-text-primary transition-colors text-[0.925rem]">Freelance</Link>
-        <Link href="/salaries" className="font-medium text-text-secondary hover:text-text-primary transition-colors text-[0.925rem]">Salaries</Link>
+        <Link href="/news" className="font-medium text-text-secondary hover:text-text-primary transition-colors text-[0.925rem]">AI News</Link>
         <Link href="/tools" className="font-medium text-text-secondary hover:text-text-primary transition-colors text-[0.925rem]">Tools</Link>
-        {/* AI Coach: visible to seekers and logged-out users; hidden for employers */}
-        {(!user || userType === 'seeker') && (
+        {/* AI Coach postponed for post-launch */}
+        {/* {(!user || userType === 'seeker') && (
           <Link href="/coach" className="font-medium text-text-secondary hover:text-text-primary transition-colors text-[0.925rem]">AI Coach</Link>
-        )}
+        )} */}
       </div>
 
       {/* Desktop Auth Area */}
@@ -76,10 +81,10 @@ export default function Navbar() {
               </Link>
             ) : (
               <Link
-                href="/coach"
+                href="/jobs"
                 className="px-5 py-2.5 rounded-lg font-semibold text-sm text-white bg-gradient-to-r from-indigo-500 to-accent-secondary hover:-translate-y-0.5 transition-all"
               >
-                AI Coach
+                Browse Jobs
               </Link>
             )}
 
@@ -119,11 +124,14 @@ export default function Navbar() {
                         <LayoutDashboard className="w-4 h-4" /> My Listings
                       </Link>
                     </>
+                  ) : userType === 'admin' ? (
+                    <>
+                      <Link href="/dashboard/admin" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
+                        <LayoutDashboard className="w-4 h-4" /> Admin Console
+                      </Link>
+                    </>
                   ) : (
                     <>
-                      <Link href="/coach" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
-                        <Brain className="w-4 h-4" /> AI Coach
-                      </Link>
                       <Link href="/applications" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
                         <FileText className="w-4 h-4" /> My Applications
                       </Link>
@@ -165,11 +173,8 @@ export default function Navbar() {
           <Link href="/jobs" onClick={() => setIsMenuOpen(false)} className="font-medium text-text-secondary hover:text-text-primary">Jobs Board</Link>
           <Link href="/forum" onClick={() => setIsMenuOpen(false)} className="font-medium text-text-secondary hover:text-text-primary">Forum</Link>
           <Link href="/freelance" onClick={() => setIsMenuOpen(false)} className="font-medium text-text-secondary hover:text-text-primary">Freelance</Link>
-          <Link href="/salaries" onClick={() => setIsMenuOpen(false)} className="font-medium text-text-secondary hover:text-text-primary">Salaries</Link>
+          <Link href="/news" onClick={() => setIsMenuOpen(false)} className="font-medium text-text-secondary hover:text-text-primary">AI News</Link>
           <Link href="/tools" onClick={() => setIsMenuOpen(false)} className="font-medium text-text-secondary hover:text-text-primary">Tools</Link>
-          {(!user || userType === 'seeker') && (
-            <Link href="/coach" onClick={() => setIsMenuOpen(false)} className="font-medium text-text-secondary hover:text-text-primary">AI Coach</Link>
-          )}
           <hr className="border-white/10" />
           {user && profile ? (
             <>
@@ -182,9 +187,13 @@ export default function Navbar() {
                   <Link href="/post-job" onClick={() => setIsMenuOpen(false)} className="font-medium text-accent-primary">Post a Job</Link>
                   <Link href="/dashboard/employer" onClick={() => setIsMenuOpen(false)} className="font-medium text-text-secondary hover:text-text-primary">My Listings</Link>
                 </>
+              ) : userType === 'admin' ? (
+                <>
+                  <Link href="/dashboard/admin" onClick={() => setIsMenuOpen(false)} className="font-medium text-accent-secondary">Admin Console</Link>
+                </>
               ) : (
                 <>
-                  <Link href="/coach" onClick={() => setIsMenuOpen(false)} className="font-medium text-accent-secondary">AI Coach</Link>
+                  <Link href="/jobs" onClick={() => setIsMenuOpen(false)} className="font-medium text-accent-secondary">Browse Jobs</Link>
                   <Link href="/applications" onClick={() => setIsMenuOpen(false)} className="font-medium text-text-secondary hover:text-text-primary">My Applications</Link>
                 </>
               )}

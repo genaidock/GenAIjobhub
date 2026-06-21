@@ -20,7 +20,7 @@ function LoginContent() {
       } else if (profile.user_type === 'employer') {
         router.replace('/post-job');
       } else {
-        router.replace('/coach');
+        router.replace('/jobs');
       }
     }
   }, [user, profile, isLoading, router, redirectTo]);
@@ -85,7 +85,7 @@ function LoginContent() {
           </div>
           <h2 className="text-2xl font-bold mb-2 text-text-primary">I'm Job Hunting</h2>
           <p className="text-text-secondary text-sm mb-6 leading-relaxed">
-            Browse AI-first jobs, get resume feedback from our AI Career Coach, and track your applications.
+            Browse AI-first jobs, track your applications, and prepare for your next career move.
           </p>
           <div className="flex items-center gap-2 text-accent-secondary font-semibold text-sm mt-auto">
             Continue as Job Seeker

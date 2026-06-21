@@ -59,6 +59,18 @@ export async function POST(req: Request) {
       );
     }
 
+    // Parse and validate validity_days (max 45 days)
+    let validityDays = 30; // Default validity
+    if (jobData.validity_days !== undefined) {
+      const parsed = parseInt(jobData.validity_days, 10);
+      if (isNaN(parsed) || parsed < 1 || parsed > 45) {
+        return NextResponse.json({ error: "Validity days must be between 1 and 45." }, { status: 400 });
+      }
+      validityDays = parsed;
+    }
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + validityDays);
+
     // Insert the job into the database
     const { data, error } = await supabase
       .from('jobs')
@@ -72,7 +84,10 @@ export async function POST(req: Request) {
           description: sanitizedDescription,
           apply_url: jobData.apply_url || '',
           is_featured: false, // Free jobs are not featured by default
-          employer_id: user.id // Tie job to authenticated user
+          employer_id: user.id, // Tie job to authenticated user
+          expires_at: expiresAt.toISOString(),
+          is_api_fetched: false,
+          moderation_status: 'pending'
         }
       ])
       .select();
