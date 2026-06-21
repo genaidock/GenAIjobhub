@@ -91,18 +91,10 @@ function AdminAuthContent() {
       const { error: verifyError } = await supabase.auth.verifyOtp({
         email: email.trim().toLowerCase(),
         token: otpToken.trim(),
-        type: 'signup', // Try signup type first, or magiclink/email based on supabase config
+        type: 'email',
       });
 
-      // If signup type fails or isn't applicable, fallback to magiclink type
-      if (verifyError) {
-        const { error: fallbackError } = await supabase.auth.verifyOtp({
-          email: email.trim().toLowerCase(),
-          token: otpToken.trim(),
-          type: 'magiclink',
-        });
-        if (fallbackError) throw fallbackError;
-      }
+      if (verifyError) throw verifyError;
 
       setSuccessMsg('Verified successfully! Redirecting...');
       router.push('/dashboard/admin');
@@ -218,11 +210,7 @@ export default function AdminLoginPage() {
         <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
       </div>
     }>
-      <CardFallbackBoundary />
+      <AdminAuthContent />
     </Suspense>
   );
-}
-
-function CardFallbackBoundary() {
-  return <AdminAuthContent />;
 }

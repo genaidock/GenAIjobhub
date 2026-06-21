@@ -211,10 +211,7 @@ export default function BlogIndex() {
                     </button>
                   </div>
 
-                  <div className="px-4 text-[10px] text-text-dark-tertiary italic leading-relaxed">
-                    Note: All articles displayed in this feed are pulled from open public feeds for informational purposes and do not represent paid promotions or endorsements of any brand, product, or source.
-                  </div>
-                  
+
                   <div className="flex flex-col gap-4">
                     {news.map((item, index) => (
                       <div 
@@ -251,6 +248,10 @@ export default function BlogIndex() {
                         </a>
                       </div>
                     ))}
+                  </div>
+                  
+                  <div className="mt-6 px-4 text-[10px] text-text-dark-tertiary italic leading-relaxed text-center">
+                    Note: All articles displayed in this feed are pulled from open public feeds for informational purposes and do not represent paid promotions or endorsements of any brand, product, or source.
                   </div>
                 </>
               )}

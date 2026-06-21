@@ -9,8 +9,14 @@ export async function GET(request: Request) {
   const token_hash = searchParams.get('token_hash');
   
   // Custom params passed in options.redirectTo
-  const next = searchParams.get('next') ?? '/dashboard';
+  let next = searchParams.get('next') ?? '/dashboard';
   const type = searchParams.get('type') as string | null;
+  const role = searchParams.get('role') as string | null;
+
+  // Prevent open redirect
+  if (!next.startsWith('/')) {
+    next = '/dashboard';
+  }
 
   const cookieStore = await cookies();
   const supabase = createServerClient(
@@ -56,10 +62,10 @@ export async function GET(request: Request) {
   if (isSuccess) {
     // If it's a new user signing up via OAuth, we need to ensure their type is set.
     const { data: { user } } = await supabase.auth.getUser();
-    if (user && type && !user.user_metadata?.user_type) {
+    if (user && role && !user.user_metadata?.user_type) {
       // Update user metadata
       await supabase.auth.updateUser({
-        data: { user_type: type }
+        data: { user_type: role }
       });
     }
 

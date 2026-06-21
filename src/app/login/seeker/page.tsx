@@ -94,7 +94,7 @@ function SeekerAuthContent() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/api/auth/callback?type=seeker&next=${redirectTo}`,
+          redirectTo: `${window.location.origin}/api/auth/callback?role=seeker&next=${redirectTo}`,
         },
       });
       if (error) throw error;

@@ -6,7 +6,7 @@ import type { User, Session } from '@supabase/supabase-js';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export type UserType = 'employer' | 'seeker' | null;
+export type UserType = 'employer' | 'seeker' | 'admin' | null;
 
 export interface Profile {
   id: string;
@@ -70,19 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, fetchProfile]);
 
   useEffect(() => {
-    // 1. Get initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        const p = await fetchProfile(session.user.id);
-        setProfile(p);
-      }
-      setIsLoading(false);
-    });
-
-    // 2. Listen to auth state changes
+    // Listen to auth state changes (which includes INITIAL_SESSION in v2)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);

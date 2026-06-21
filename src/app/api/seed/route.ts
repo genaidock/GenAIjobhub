@@ -48,6 +48,10 @@ const SEED_JOBS = [
 ];
 
 export async function POST(req: Request) {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: "Forbidden in production" }, { status: 403 });
+  }
+
   const authHeader = req.headers.get('authorization');
   if (authHeader !== `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

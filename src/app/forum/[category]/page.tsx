@@ -1,29 +1,39 @@
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 
 export const revalidate = 0;
 
 export default async function ForumCategoryPage({ params }: { params: Promise<{ category: string }> }) {
   const { category: categoryParam } = await params;
-  // Try to match the slug to a category name.
-  // The slug is lowercase with hyphens, e.g., 'ai-tools-models'
   
-  // Since we don't have a slug field, we can fetch all and find it, or use ilike if we had slugs.
-  // We'll fetch all and find the match for robust handling without schema changes right now.
-  const { data: categories } = await supabase.from('forum_categories').select('*');
+  const cookieStore = await cookies();
+  const supabaseServer = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll() },
+        setAll(cookiesToSet) {
+          try { cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options)) } catch (_) {}
+        },
+      },
+    }
+  );
+
+  const { data: categories } = await supabaseServer.from('forum_categories').select('*');
   
   if (!categories || categories.length === 0) {
-    // If no categories in DB, it's either not seeded or wrong route
     return notFound();
   }
 
-  const category = categories.find(c => c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === categoryParam);
+  const category = categories.find(c => c.slug === categoryParam || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === categoryParam);
   
   if (!category) return notFound();
 
   // Fetch posts for this category
-  const { data: posts } = await supabase
+  const { data: posts } = await supabaseServer
     .from('forum_posts')
     .select('*, author:profiles(full_name, user_type)')
     .eq('category_id', category.id)

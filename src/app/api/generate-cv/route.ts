@@ -108,8 +108,7 @@ ${parsedText}
 
     if (dbError) {
       console.error('Failed to save CV to DB:', dbError);
-      // We still return the generated CV even if DB save fails to not block the user, 
-      // but ideally we should track this.
+      return NextResponse.json({ error: 'Failed to save the generated CV to your profile.' }, { status: 500 });
     }
 
     return NextResponse.json({ 

@@ -70,8 +70,8 @@ export default async function FreelanceBoard() {
                       Client: <span className="font-semibold text-text-dark">{gig.client_name}</span>
                     </div>
                     {/* Assuming gig.apply_url might exist in the future, otherwise just show a button */}
-                    <button className="px-6 py-2.5 rounded-lg font-semibold text-sm text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-0.5 shadow-[0_4px_15px_rgba(109,40,217,0.3)] hover:shadow-[0_6px_20px_rgba(109,40,217,0.4)] transition-all">
-                      Send Proposal
+                    <button disabled className="px-6 py-2.5 rounded-lg font-semibold text-sm text-text-dark-tertiary bg-slate-100 border border-border-light cursor-not-allowed">
+                      Coming Soon
                     </button>
                   </div>
                 </div>

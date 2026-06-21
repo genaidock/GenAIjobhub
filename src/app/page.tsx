@@ -1,11 +1,26 @@
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import NewsletterForm from '@/components/NewsletterForm';
 import ApplyButton from '@/components/ApplyButton';
 
 export const revalidate = 0; // Disable caching for MVP so you see live updates instantly
 
 export default async function Home() {
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll() },
+        setAll(cookiesToSet) {
+          try { cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options)) } catch (_) {}
+        },
+      },
+    }
+  );
+
   // Fetch live featured jobs from your Supabase database
   const { data: featuredJobs } = await supabase
     .from('jobs')
@@ -19,7 +34,9 @@ export default async function Home() {
   // Fetch real count for metrics
   const { count } = await supabase
     .from('jobs')
-    .select('*', { count: 'exact', head: true });
+    .select('*', { count: 'exact', head: true })
+    .eq('moderation_status', 'approved')
+    .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString());
   
   const realCount = count || 0;
 

@@ -34,7 +34,7 @@ export default function AboutPage() {
               The emergence of Large Language Models and Generative AI has sparked a massive shift in tech hiring. New specializations like Prompt Engineering, AI Consulting, RAG Systems Engineering, and Vector Database administration have emerged overnight. 
             </p>
             <p className="mt-3">
-              **GenAIJobHub** was built to organize these AI-native opportunities. We connect top talent with companies building the next frontier of artificial intelligence.
+              <strong>GenAIJobHub</strong> was built to organize these AI-native opportunities. We connect top talent with companies building the next frontier of artificial intelligence.
             </p>
           </div>
 

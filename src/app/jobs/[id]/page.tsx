@@ -11,7 +11,22 @@ import ApplyButton from '@/components/ApplyButton';
 // Generate SEO Metadata for this specific job
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const { data: job } = await supabase
+  
+  const cookieStore = await cookies();
+  const supabaseServer = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll() },
+        setAll(cookiesToSet) {
+          try { cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options)) } catch (_) {}
+        },
+      },
+    }
+  );
+
+  const { data: job } = await supabaseServer
     .from('jobs')
     .select('title, company_name, description, moderation_status, employer_id')
     .eq('id', id)
@@ -26,23 +41,6 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   // Security gate for unapproved jobs in SEO metadata
   if (job.moderation_status === 'pending' || job.moderation_status === 'rejected') {
-    const cookieStore = await cookies();
-    const supabaseServer = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch (_) {}
-          },
-        },
-      }
-    );
     const { data: { user } } = await supabaseServer.auth.getUser();
     const isOwner = user && user.id === job.employer_id;
     const isAdmin = user && user.email?.toLowerCase() === 'admin@genaijobhub.com';
@@ -69,8 +67,22 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   
+  const cookieStore = await cookies();
+  const supabaseServer = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll() },
+        setAll(cookiesToSet) {
+          try { cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options)) } catch (_) {}
+        },
+      },
+    }
+  );
+
   // Fetch full job data
-  const { data: job, error } = await supabase
+  const { data: job, error } = await supabaseServer
     .from('jobs')
     .select('*')
     .eq('id', id)
@@ -85,23 +97,6 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
   const isRejected = job.moderation_status === 'rejected';
 
   if (isPending || isRejected) {
-    const cookieStore = await cookies();
-    const supabaseServer = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch (_) {}
-          },
-        },
-      }
-    );
     const { data: { user } } = await supabaseServer.auth.getUser();
     const isOwner = user && user.id === job.employer_id;
     const isAdmin = user && user.email?.toLowerCase() === 'admin@genaijobhub.com';

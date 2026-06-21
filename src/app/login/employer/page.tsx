@@ -95,7 +95,7 @@ function EmployerAuthContent() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/api/auth/callback?type=employer&next=${redirectTo}`,
+          redirectTo: `${window.location.origin}/api/auth/callback?role=employer&next=${redirectTo}`,
         },
       });
       if (error) throw error;

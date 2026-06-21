@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Calendar, Clock, User, Share2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import ShareButton from '@/components/ShareButton';
 
 // We import the same BLOG_POSTS list to search and match
 import { BLOG_POSTS } from '../page';
@@ -180,15 +181,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <aside className="w-full md:w-[180px] flex-shrink-0 sticky top-24 card-light p-5 flex flex-col gap-3 items-center text-center">
             <Share2 className="w-5 h-5 text-text-dark-tertiary mb-1" />
             <span className="font-bold text-xs uppercase text-text-dark-tertiary tracking-wider">Share Article</span>
-            <button 
-              onClick={() => {
-                navigator.clipboard.writeText(window.location.href);
-                alert("Article link copied to clipboard!");
-              }} 
-              className="text-xs font-semibold px-4 py-2 bg-slate-50 border border-border-light hover:bg-slate-100 rounded-lg text-text-dark transition-colors w-full"
-            >
-              Copy Link
-            </button>
+            <ShareButton />
           </aside>
         </div>
       </section>

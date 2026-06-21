@@ -64,6 +64,11 @@ function PostJobContent() {
           if (fetchErr) throw fetchErr;
 
           if (job) {
+            if (job.employer_id !== user?.id) {
+              setError("Unauthorized to repost this job.");
+              return;
+            }
+
             setFormData({
               title: job.title || '',
               company_name: job.company_name || '',
@@ -233,7 +238,7 @@ function PostJobContent() {
           <div className="text-center card-light p-10 md:p-14 max-w-lg border-accent-primary/30 shadow-[0_0_30px_rgba(109,40,217,0.12)]">
             <div className="text-6xl mb-6">🎉</div>
             <h2 className="text-3xl font-bold text-text-dark mb-4">Job Posted Successfully!</h2>
-            <p className="text-text-dark-secondary text-lg mb-8">Your listing is now live on the jobs board.</p>
+            <p className="text-text-dark-secondary text-lg mb-8">Your listing is now pending admin review.</p>
             <p className="text-sm text-text-dark-tertiary">Redirecting you to the jobs board...</p>
           </div>
         </div>

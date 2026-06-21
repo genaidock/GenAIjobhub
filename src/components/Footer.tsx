@@ -48,7 +48,7 @@ export default function Footer() {
               <li><Link href="/tools" className="text-text-secondary text-sm hover:text-white transition-colors">AI Tools</Link></li>
               <li><Link href="/salaries" className="text-text-secondary text-sm hover:text-white transition-colors">Salary Explorer</Link></li>
               <li><Link href="/blog" className="text-text-secondary text-sm hover:text-white transition-colors">Blog</Link></li>
-              <li><Link href="#newsletter" className="text-text-secondary text-sm hover:text-white transition-colors">Newsletter</Link></li>
+              <li><Link href="/#newsletter" className="text-text-secondary text-sm hover:text-white transition-colors">Newsletter</Link></li>
             </ul>
           </div>
 

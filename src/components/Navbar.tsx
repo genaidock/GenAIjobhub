@@ -162,7 +162,7 @@ export default function Navbar() {
 
       {/* Mobile Hamburger */}
       <div className="md:hidden">
-        <button onClick={() => setIsMenuOpen(!isMenuOpen)}>
+        <button aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'} onClick={() => setIsMenuOpen(!isMenuOpen)}>
           {isMenuOpen ? <X className="text-text-primary w-6 h-6" /> : <Menu className="text-text-primary w-6 h-6" />}
         </button>
       </div>

@@ -30,4 +30,55 @@ ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_user_type_check;
 ALTER TABLE public.profiles ADD CONSTRAINT profiles_user_type_check CHECK (user_type IN ('employer', 'seeker', 'admin'));
 
 
+-- Enable RLS and add basic policies for unprotected tables
 
+ALTER TABLE public.subscribers ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can subscribe" ON public.subscribers FOR INSERT WITH CHECK (true);
+CREATE POLICY "Admins can view subscribers" ON public.subscribers FOR SELECT USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.user_type = 'admin')
+);
+
+ALTER TABLE public.gigs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Gigs are viewable by everyone" ON public.gigs FOR SELECT USING (true);
+CREATE POLICY "Admins can manage gigs" ON public.gigs FOR ALL USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.user_type = 'admin')
+);
+
+ALTER TABLE public.tools ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Tools are viewable by everyone" ON public.tools FOR SELECT USING (true);
+CREATE POLICY "Admins can manage tools" ON public.tools FOR ALL USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.user_type = 'admin')
+);
+
+ALTER TABLE public.salary_trends ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Salary trends are viewable by everyone" ON public.salary_trends FOR SELECT USING (true);
+CREATE POLICY "Admins can manage salary trends" ON public.salary_trends FOR ALL USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.user_type = 'admin')
+);
+
+ALTER TABLE public.forum_categories ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Forum categories are viewable by everyone" ON public.forum_categories FOR SELECT USING (true);
+CREATE POLICY "Admins can manage forum categories" ON public.forum_categories FOR ALL USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.user_type = 'admin')
+);
+
+ALTER TABLE public.forum_posts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Forum posts are viewable by everyone" ON public.forum_posts FOR SELECT USING (true);
+CREATE POLICY "Authenticated users can insert forum posts" ON public.forum_posts FOR INSERT WITH CHECK (auth.uid() = author_id);
+CREATE POLICY "Users can update their own posts" ON public.forum_posts FOR UPDATE USING (auth.uid() = author_id);
+CREATE POLICY "Users can delete their own posts" ON public.forum_posts FOR DELETE USING (auth.uid() = author_id);
+
+ALTER TABLE public.forum_comments ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Forum comments are viewable by everyone" ON public.forum_comments FOR SELECT USING (true);
+CREATE POLICY "Authenticated users can insert forum comments" ON public.forum_comments FOR INSERT WITH CHECK (auth.uid() = author_id);
+CREATE POLICY "Users can update their own comments" ON public.forum_comments FOR UPDATE USING (auth.uid() = author_id);
+CREATE POLICY "Users can delete their own comments" ON public.forum_comments FOR DELETE USING (auth.uid() = author_id);
+
+ALTER TABLE public.generated_cvs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view their own CVs" ON public.generated_cvs FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own CVs" ON public.generated_cvs FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own CVs" ON public.generated_cvs FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own CVs" ON public.generated_cvs FOR DELETE USING (auth.uid() = user_id);
+
+-- Add slug to forum categories for more robust routing
+ALTER TABLE public.forum_categories ADD COLUMN IF NOT EXISTS slug TEXT UNIQUE;

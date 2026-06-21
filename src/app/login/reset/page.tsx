@@ -39,14 +39,18 @@ function ResetContent() {
           Enter your email and we'll send a reset link.
         </p>
         <form onSubmit={handleReset} className="flex flex-col gap-4">
-          <input
-            type="email"
+          <div>
+            <label htmlFor="reset-email" className="sr-only">Email Address</label>
+            <input
+              id="reset-email"
+              type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
             required
             placeholder="you@email.com"
-            className="w-full p-3 bg-background border border-border rounded-xl text-white focus:outline-none focus:border-accent-primary transition-colors"
-          />
+              className="w-full p-3 bg-background border border-border rounded-xl text-white focus:outline-none focus:border-accent-primary transition-colors"
+            />
+          </div>
           {message && (
             <p className={`text-sm rounded-lg px-3 py-2 ${
               message.startsWith('Error')

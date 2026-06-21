@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import ApplyButton from './ApplyButton';
 
 function CompanyLogo({ domain, companyName }: { domain: string | null, companyName: string }) {
@@ -16,9 +17,11 @@ function CompanyLogo({ domain, companyName }: { domain: string | null, companyNa
   }
 
   return (
-    <img 
+    <Image 
       src={`https://logo.clearbit.com/${domain}`} 
       alt={`${companyName} logo`} 
+      width={64}
+      height={64}
       className="w-full h-full object-cover"
       onError={() => setError(true)}
     />

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 // Simple in-memory rate limit for demo/audit purposes
 const rateLimitMap = new Map<string, { count: number, lastReset: number }>();
@@ -28,9 +29,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'job_id is required' }, { status: 400 });
     }
 
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() { return cookieStore.getAll() },
+          setAll(cookiesToSet) {
+            try { cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options)) } catch (_) {}
+          },
+        },
+      }
+    );
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized: Please log in to apply" }, { status: 401 });
+    }
+
     const { error } = await supabase
       .from('applications')
-      .insert([{ job_id }]);
+      .insert([{ job_id, seeker_id: user.id }]);
 
     if (error) {
       console.error('Error tracking application:', error);

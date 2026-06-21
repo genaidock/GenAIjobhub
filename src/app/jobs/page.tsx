@@ -1,4 +1,5 @@
-import { supabase } from '@/lib/supabase';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import JobsBoardClient from '@/components/JobsBoardClient';
 import { Info } from 'lucide-react';
 
@@ -10,6 +11,20 @@ export const metadata = {
 export const revalidate = 0; // Disable caching for MVP
 
 export default async function JobsBoard() {
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll() },
+        setAll(cookiesToSet) {
+          try { cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options)) } catch (_) {}
+        },
+      },
+    }
+  );
+
   const { data: jobs } = await supabase
     .from('jobs')
     .select('*')
@@ -39,17 +54,19 @@ export default async function JobsBoard() {
       {/* Light Content Area */}
       <section className="section-light w-full pb-20 px-[5%]">
         <div className="max-w-[1200px] w-full mx-auto">
+
+
+          {/* Client Component for interactive filtering */}
+          <JobsBoardClient initialJobs={jobs || []} />
+
           {/* Disclaimer Banner */}
-          <div className="flex gap-3 items-center p-4 bg-slate-50 border border-slate-200/60 rounded-xl text-xs text-text-dark-secondary mb-6">
+          <div className="mt-8 flex gap-3 items-center p-4 bg-slate-50 border border-slate-200/60 rounded-xl text-xs text-text-dark-secondary">
             <Info className="w-4 h-4 text-accent-primary shrink-0" />
             <span>
               <strong>Note:</strong> Some opportunities on this board are sourced from external sites. 
               While we sync postings daily, active statuses or application link changes on those platforms may not reflect here immediately.
             </span>
           </div>
-
-          {/* Client Component for interactive filtering */}
-          <JobsBoardClient initialJobs={jobs || []} />
         </div>
       </section>
     </div>
