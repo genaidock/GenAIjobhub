@@ -2,7 +2,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
   'https://ucwljilbxplonzmxwryh.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjd2xqaWxieHBsb256bXh3cnloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMjk1NTAsImV4cCI6MjA5NjkwNTU1MH0.SX0Tyl4AZy8NiRTGJxOIdeF9mSGEGoi9Jhs2bKYVoWE'
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
 async function testSignup() {
@@ -30,3 +30,4 @@ async function testSignup() {
 }
 
 testSignup();
+
