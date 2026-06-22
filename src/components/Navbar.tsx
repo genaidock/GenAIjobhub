@@ -115,6 +115,9 @@ export default function Navbar() {
                   </div>
 
                   {/* Role-specific menu items */}
+                  <Link href="/profile" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
+                    <FileText className="w-4 h-4" /> My Profile
+                  </Link>
                   {userType === 'employer' ? (
                     <>
                       <Link href="/post-job" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">

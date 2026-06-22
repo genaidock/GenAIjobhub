@@ -1,0 +1,54 @@
+import { NextResponse } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+import { createAdminClient } from '@/lib/supabase';
+
+export async function PUT(req: Request) {
+  try {
+    const cookieStore = await cookies();
+    const supabaseServer = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() { return cookieStore.getAll() },
+          setAll(cookiesToSet) {
+            try { cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options)) } catch (_) {}
+          },
+        },
+      }
+    );
+
+    const { data: { user }, error: authError } = await supabaseServer.auth.getUser();
+    
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const payload = await req.json();
+    const { full_name, company_name, linkedin_url, github_url, phone } = payload;
+
+    const updateData: Record<string, any> = {};
+    if (full_name !== undefined) updateData.full_name = full_name;
+    if (company_name !== undefined) updateData.company_name = company_name;
+    if (linkedin_url !== undefined) updateData.linkedin_url = linkedin_url;
+    if (github_url !== undefined) updateData.github_url = github_url;
+    if (phone !== undefined) updateData.phone = phone;
+
+    const adminClient = createAdminClient();
+    const { error: updateError } = await adminClient
+      .from('profiles')
+      .update(updateData)
+      .eq('id', user.id);
+
+    if (updateError) {
+      return NextResponse.json({ error: updateError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: 'Profile updated successfully' }, { status: 200 });
+
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'An error occurred';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}

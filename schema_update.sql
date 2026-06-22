@@ -99,3 +99,7 @@ CREATE POLICY "Freelancers can insert own proposals" ON public.proposals FOR INS
 CREATE POLICY "Clients can view proposals for their gigs" ON public.proposals FOR SELECT USING (
   EXISTS (SELECT 1 FROM public.gigs WHERE gigs.id = proposals.gig_id AND gigs.employer_id = auth.uid())
 );
+
+-- Add phone column to profiles
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS phone TEXT;
+
