@@ -84,6 +84,17 @@ export default function ProposalModal({ gigId, gigTitle, onClose, onSuccess }: P
             />
           </div>
 
+          <label className="flex items-start gap-3 cursor-pointer text-text-dark-tertiary text-xs mt-2">
+            <input 
+              type="checkbox" 
+              required
+              className="mt-0.5 w-4 h-4 rounded border-border-light accent-accent-primary shrink-0" 
+            />
+            <span>
+              I agree that GenAIJobHub is not responsible for any disputes arising from further business, payments, or contracts related to this gig.
+            </span>
+          </label>
+
           <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"

@@ -25,6 +25,8 @@ function PostJobContent() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [isGeneratingJD, setIsGeneratingJD] = useState(false);
+  const [showPackageModal, setShowPackageModal] = useState(false);
+  const [isPurchasingPackage, setIsPurchasingPackage] = useState(false);
   const { user, userType, session, isLoading: authLoading } = useAuth();
 
   // Employer-only guard
@@ -135,7 +137,14 @@ function PostJobContent() {
 
       const data = await res.json();
       
-      if (!res.ok) throw new Error(data.error || 'Failed to post job');
+      if (!res.ok) {
+        if (data.requiresPayment) {
+          setShowPackageModal(true);
+          setIsSubmitting(false);
+          return; // Stop submission
+        }
+        throw new Error(data.error || 'Failed to post job');
+      }
 
       const jobId = data.job.id;
 
@@ -206,6 +215,73 @@ function PostJobContent() {
     }
   };
 
+  const handlePurchasePackage = async (packageId: string) => {
+    setIsPurchasingPackage(true);
+    setError('');
+    
+    try {
+      const res = await loadRazorpayScript();
+      if (!res) {
+        throw new Error('Razorpay SDK failed to load. Are you online?');
+      }
+      
+      const orderRes = await fetch('/api/razorpay/create-package-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ package_id: packageId }),
+      });
+      const orderData = await orderRes.json();
+      if (!orderRes.ok) throw new Error(orderData.error || 'Failed to create payment order');
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_mockkey',
+        amount: orderData.order.amount,
+        currency: orderData.order.currency,
+        name: 'GenAIJobHub',
+        description: 'Job Posting Package',
+        order_id: orderData.order.id,
+        handler: async function (response: any) {
+          const verifyRes = await fetch('/api/razorpay/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            }),
+          });
+          const verifyData = await verifyRes.json();
+          if (verifyRes.ok && verifyData.success) {
+            setShowPackageModal(false);
+            // Now retry posting job by triggering fake form submission
+            const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+            handleSubmit(fakeEvent);
+          } else {
+            setError('Payment verification failed. Please try again.');
+          }
+          setIsPurchasingPackage(false);
+        },
+        prefill: {
+          name: user?.user_metadata?.full_name || '',
+          email: user?.email || '',
+        },
+        theme: {
+          color: '#6d28d9',
+        },
+      };
+
+      const paymentObject = new (window as any).Razorpay(options);
+      paymentObject.on('payment.failed', function () {
+        setError('Payment failed. Please try again.');
+        setIsPurchasingPackage(false);
+      });
+      paymentObject.open();
+    } catch (err: any) {
+      setError(err.message);
+      setIsPurchasingPackage(false);
+    }
+  };
+
   const handleGenerateJD = async () => {
     if (!formData.title || !formData.company_name) {
       setError('Please enter a Job Title and Company Name to generate a description.');
@@ -248,6 +324,44 @@ function PostJobContent() {
 
   return (
     <div className="flex flex-col items-center">
+      {/* Package Purchase Modal */}
+      {showPackageModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-3xl bg-background border border-border-light rounded-2xl shadow-2xl p-8 relative animate-in fade-in zoom-in duration-200">
+            <button 
+              onClick={() => setShowPackageModal(false)}
+              className="absolute top-4 right-4 p-2 text-text-dark-tertiary hover:text-white"
+            >
+              ✕
+            </button>
+            <h2 className="text-2xl font-bold text-white mb-2 text-center">Out of Job Credits!</h2>
+            <p className="text-text-dark-tertiary text-center mb-8">Purchase a package to continue posting to our community.</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { id: 'single', name: 'Single Post', credits: 1, price: '₹499', desc: 'Perfect for a one-off hire.' },
+                { id: 'starter', name: 'Starter Pack', credits: 5, price: '₹1,999', desc: 'Save 20% on 5 postings.' },
+                { id: 'growth', name: 'Growth Pack', credits: 10, price: '₹3,499', desc: 'Best value for growing teams.' },
+              ].map(pkg => (
+                <div key={pkg.id} className="border border-border rounded-xl p-6 flex flex-col items-center bg-slate-900/50 hover:border-accent-primary transition-all">
+                  <h3 className="text-lg font-bold text-white mb-1">{pkg.name}</h3>
+                  <div className="text-2xl font-extrabold text-accent-primary mb-2">{pkg.price}</div>
+                  <div className="text-sm font-semibold text-text-secondary mb-4">{pkg.credits} Credits</div>
+                  <p className="text-xs text-text-dark-tertiary text-center mb-6 h-10">{pkg.desc}</p>
+                  <button 
+                    onClick={() => handlePurchasePackage(pkg.id)}
+                    disabled={isPurchasingPackage}
+                    className="w-full py-2.5 rounded-lg bg-white/10 hover:bg-accent-primary text-white font-semibold transition-colors disabled:opacity-50"
+                  >
+                    Buy Now
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Dark Header Banner */}
       <section className="hero-glow hero-grid w-full py-16 md:py-20 px-[5%] text-center bg-background relative overflow-hidden">
         <div className="absolute top-1/2 right-1/4 w-[250px] h-[250px] rounded-full bg-purple-600/15 blur-[100px] animate-pulse pointer-events-none" />
@@ -371,6 +485,17 @@ function PostJobContent() {
                   value={formData.description} onChange={handleChange}
                 />
               </div>
+
+              <label className="flex items-start gap-3 cursor-pointer text-text-dark-secondary text-sm mt-4 p-4 bg-slate-50 border border-border-light rounded-xl">
+                <input 
+                  type="checkbox" 
+                  required
+                  className="mt-1 w-5 h-5 rounded border-border-light accent-accent-primary shrink-0" 
+                />
+                <span>
+                  <strong>Disclaimer:</strong> I understand and agree that GenAIJobHub is a listing portal only. We are not responsible for any disputes arising from further business, payments, or contracts related to this posting.
+                </span>
+              </label>
 
               <div className="border-t border-border-light pt-6 mt-2 flex flex-col md:flex-row justify-between items-center gap-6">
                 

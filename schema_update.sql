@@ -29,6 +29,8 @@ UPDATE public.jobs SET moderation_status = 'approved' WHERE is_api_fetched = tru
 ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_user_type_check;
 ALTER TABLE public.profiles ADD CONSTRAINT profiles_user_type_check CHECK (user_type IN ('employer', 'seeker', 'admin'));
 
+-- Add job credits for packages
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS job_credits_remaining INTEGER DEFAULT 5;
 
 -- Enable RLS and add basic policies for unprotected tables
 
@@ -38,10 +40,23 @@ CREATE POLICY "Admins can view subscribers" ON public.subscribers FOR SELECT USI
   EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.user_type = 'admin')
 );
 
+ALTER TABLE public.gigs ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'failed'));
 ALTER TABLE public.gigs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Gigs are viewable by everyone" ON public.gigs FOR SELECT USING (true);
 CREATE POLICY "Admins can manage gigs" ON public.gigs FOR ALL USING (
   EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.user_type = 'admin')
+);
+CREATE POLICY "Employers can insert their own gigs" ON public.gigs FOR INSERT WITH CHECK (
+  EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.user_type = 'employer')
+  AND auth.uid() = employer_id
+);
+CREATE POLICY "Employers can update their own gigs" ON public.gigs FOR UPDATE USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.user_type = 'employer')
+  AND auth.uid() = employer_id
+);
+CREATE POLICY "Employers can delete their own gigs" ON public.gigs FOR DELETE USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.user_type = 'employer')
+  AND auth.uid() = employer_id
 );
 
 ALTER TABLE public.tools ENABLE ROW LEVEL SECURITY;
@@ -90,6 +105,7 @@ CREATE TABLE IF NOT EXISTS public.proposals (
     freelancer_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
     cover_letter TEXT NOT NULL,
     status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'reviewed', 'accepted', 'rejected')),
+    payment_status TEXT DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'failed')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(gig_id, freelancer_id)
 );

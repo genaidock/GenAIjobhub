@@ -52,13 +52,20 @@ export async function POST(req: Request) {
     // Verify user is an employer
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('user_type')
+      .select('user_type, job_credits_remaining')
       .eq('id', user.id)
       .single();
 
     if (profileError || profileData?.user_type !== 'employer') {
       return NextResponse.json(
         { error: 'Forbidden: Only employers can post jobs.' },
+        { status: 403 }
+      );
+    }
+
+    if (profileData.job_credits_remaining === undefined || profileData.job_credits_remaining <= 0) {
+      return NextResponse.json(
+        { error: 'Insufficient job credits. Please purchase a job posting package.', requiresPayment: true },
         { status: 403 }
       );
     }
@@ -98,6 +105,16 @@ export async function POST(req: Request) {
 
     if (error) {
       throw error;
+    }
+
+    // Decrement credits
+    const { error: decrementError } = await supabase
+      .from('profiles')
+      .update({ job_credits_remaining: profileData.job_credits_remaining - 1 })
+      .eq('id', user.id);
+
+    if (decrementError) {
+      console.error("Failed to decrement job credits:", decrementError);
     }
 
     return NextResponse.json({ success: true, job: data[0] });
