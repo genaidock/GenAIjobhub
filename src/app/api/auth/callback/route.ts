@@ -81,7 +81,10 @@ export async function GET(request: Request) {
         }
         
         // Sync to profiles table since the insert trigger missed it for OAuth
-        await supabase
+        // Need to use adminClient because RLS doesn't allow users to update profiles directly
+        const { createAdminClient } = await import('@/lib/supabase');
+        const adminClient = createAdminClient();
+        await adminClient
           .from('profiles')
           .update({ user_type: targetRole })
           .eq('id', user.id);
