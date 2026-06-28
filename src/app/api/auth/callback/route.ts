@@ -62,11 +62,30 @@ export async function GET(request: Request) {
   if (isSuccess) {
     // If it's a new user signing up via OAuth, we need to ensure their type is set.
     const { data: { user } } = await supabase.auth.getUser();
-    if (user && role && !user.user_metadata?.user_type) {
-      // Update user metadata
-      await supabase.auth.updateUser({
-        data: { user_type: role }
-      });
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('id', user.id)
+        .single();
+
+      // Prioritize the role passed in the URL, otherwise fallback to metadata
+      const targetRole = role || user.user_metadata?.user_type;
+
+      if (targetRole && profile?.user_type !== targetRole) {
+        // Update user metadata if it wasn't set
+        if (!user.user_metadata?.user_type) {
+          await supabase.auth.updateUser({
+            data: { user_type: targetRole }
+          });
+        }
+        
+        // Sync to profiles table since the insert trigger missed it for OAuth
+        await supabase
+          .from('profiles')
+          .update({ user_type: targetRole })
+          .eq('id', user.id);
+      }
     }
 
     return NextResponse.redirect(`${origin}${next}`);
