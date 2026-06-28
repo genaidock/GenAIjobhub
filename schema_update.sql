@@ -42,6 +42,7 @@ CREATE POLICY "Admins can view subscribers" ON public.subscribers FOR SELECT USI
 );
 
 ALTER TABLE public.gigs ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'failed'));
+ALTER TABLE public.gigs ADD COLUMN IF NOT EXISTS employer_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE;
 ALTER TABLE public.gigs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Gigs are viewable by everyone" ON public.gigs FOR SELECT USING (true);
 CREATE POLICY "Admins can manage gigs" ON public.gigs FOR ALL USING (
