@@ -31,16 +31,16 @@ function PostJobContent() {
   const [upgradeCompany, setUpgradeCompany] = useState('');
   const { user, userType, session, isLoading: authLoading } = useAuth();
 
-  // Employer-only guard
+  // Employer-only guard — only redirect once auth has fully resolved
   useEffect(() => {
     if (!authLoading) {
       if (!user) {
         router.replace('/login/employer?redirect=/post-job');
-      } else if (!['employer', 'seeker', 'both', 'admin'].includes(userType as string)) {
-        router.replace('/jobs');
       }
+      // Only redirect away if userType is explicitly a non-employer value (not null/loading)
+      // 'seeker' with no employer access gets handled later with the upgrade UI
     }
-  }, [user, userType, authLoading, router]);
+  }, [user, authLoading, router]);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -93,7 +93,7 @@ function PostJobContent() {
     }
   }, [user, searchParams]);
 
-  if (authLoading || !user || !['employer', 'seeker', 'both', 'admin'].includes(userType as string)) {
+  if (authLoading || !user) {
     return (
       <div className="flex items-center justify-center min-h-[70vh]">
         <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
