@@ -72,6 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user) return;
     const p = await fetchProfile(user.id);
     setProfile(p);
+    setUserType(p?.user_type ? (p.user_type.toLowerCase() as UserType) : null);
   }, [user, fetchProfile]);
 
   useEffect(() => {
@@ -85,6 +86,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.user) {
         const p = await fetchProfile(session.user.id);
         if (mounted) setProfile(p);
+        if (mounted) {
+          setProfile(p);
+          setUserType(p?.user_type ? (p.user_type.toLowerCase() as UserType) : null);
+        }
       }
       if (mounted) setIsLoading(false);
     });
@@ -98,9 +103,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (session?.user) {
           const p = await fetchProfile(session.user.id);
-          if (mounted) setProfile(p);
+          if (mounted) {
+            setProfile(p);
+            setUserType(p?.user_type ? (p.user_type.toLowerCase() as UserType) : null);
+          }
         } else {
-          if (mounted) setProfile(null);
+          if (mounted) {
+            setProfile(null);
+            setUserType(null);
+          }
         }
         if (mounted) setIsLoading(false);
       }

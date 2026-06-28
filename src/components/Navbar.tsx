@@ -123,11 +123,11 @@ export default function Navbar() {
                   </Link>
                   {userType === 'employer' ? (
                     <>
-                      <Link href="/jobs" onClick={() => setTimeout(() => setIsUserMenuOpen(false), 150)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
-                        <LayoutDashboard className="w-4 h-4" /> Browse Jobs
+                      <Link href="/post-job" onClick={() => setTimeout(() => setIsUserMenuOpen(false), 150)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
+                        <FileText className="w-4 h-4" /> Post a Job
                       </Link>
-                      <Link href="/applications" onClick={() => setTimeout(() => setIsUserMenuOpen(false), 150)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
-                        <LayoutDashboard className="w-4 h-4" /> My Applications
+                      <Link href="/dashboard/employer" onClick={() => setTimeout(() => setIsUserMenuOpen(false), 150)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
+                        <LayoutDashboard className="w-4 h-4" /> My Listings
                       </Link>
                     </>
                   ) : userType === 'admin' ? (
@@ -138,7 +138,10 @@ export default function Navbar() {
                     </>
                   ) : (
                     <>
-                      <Link href="/applications" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
+                      <Link href="/jobs" onClick={() => setTimeout(() => setIsUserMenuOpen(false), 150)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
+                        <LayoutDashboard className="w-4 h-4" /> Browse Jobs
+                      </Link>
+                      <Link href="/applications" onClick={() => setTimeout(() => setIsUserMenuOpen(false), 150)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
                         <FileText className="w-4 h-4" /> My Applications
                       </Link>
                     </>
