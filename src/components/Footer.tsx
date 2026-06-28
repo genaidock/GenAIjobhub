@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Briefcase } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Footer() {
   return (
@@ -10,7 +10,9 @@ export default function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-1">
             <div className="text-2xl font-extrabold text-text-primary mb-4 flex items-center gap-2">
-              <Briefcase className="text-accent-primary w-5 h-5" />
+              <div className="w-6 h-6 relative flex-shrink-0">
+                <Image src="/logo.png" alt="GenAIJobHub Logo" fill sizes="24px" className="object-contain" />
+              </div>
               GenAI<span className="text-accent-primary">JobHub</span>
             </div>
             <p className="text-text-secondary text-sm leading-relaxed mb-6 max-w-[280px]">

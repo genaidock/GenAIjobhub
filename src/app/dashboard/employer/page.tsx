@@ -36,7 +36,7 @@ function EmployerDashboardContent() {
     if (!authLoading) {
       if (!user) {
         router.replace('/login/employer?redirect=/dashboard/employer');
-      } else if (userType !== 'employer') {
+      } else if (!['employer', 'both', 'admin'].includes(userType as string)) {
         router.replace('/jobs');
       }
     }
@@ -69,7 +69,7 @@ function EmployerDashboardContent() {
     }
   }, [user, session]);
 
-  if (authLoading || !user || userType !== 'employer') {
+  if (authLoading || !user || !['employer', 'both', 'admin'].includes(userType as string)) {
     return (
       <div className="flex items-center justify-center min-h-[70vh]">
         <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />

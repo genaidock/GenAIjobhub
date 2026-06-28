@@ -98,7 +98,7 @@ export async function POST(req: Request) {
           employer_id: user.id, // Tie job to authenticated user
           expires_at: expiresAt.toISOString(),
           is_api_fetched: false,
-          moderation_status: 'pending'
+          moderation_status: 'approved'
         }
       ])
       .select();

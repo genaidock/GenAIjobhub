@@ -27,6 +27,8 @@ function PostJobContent() {
   const [isGeneratingJD, setIsGeneratingJD] = useState(false);
   const [showPackageModal, setShowPackageModal] = useState(false);
   const [isPurchasingPackage, setIsPurchasingPackage] = useState(false);
+  const [isUpgrading, setIsUpgrading] = useState(false);
+  const [upgradeCompany, setUpgradeCompany] = useState('');
   const { user, userType, session, isLoading: authLoading } = useAuth();
 
   // Employer-only guard
@@ -34,7 +36,7 @@ function PostJobContent() {
     if (!authLoading) {
       if (!user) {
         router.replace('/login/employer?redirect=/post-job');
-      } else if (userType !== 'employer') {
+      } else if (!['employer', 'seeker', 'both', 'admin'].includes(userType as string)) {
         router.replace('/jobs');
       }
     }
@@ -91,7 +93,7 @@ function PostJobContent() {
     }
   }, [user, searchParams]);
 
-  if (authLoading || !user || userType !== 'employer') {
+  if (authLoading || !user || !['employer', 'seeker', 'both', 'admin'].includes(userType as string)) {
     return (
       <div className="flex items-center justify-center min-h-[70vh]">
         <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
@@ -318,6 +320,65 @@ function PostJobContent() {
             <p className="text-sm text-text-dark-tertiary">Redirecting you to the jobs board...</p>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (userType === 'seeker') {
+    return (
+      <div className="flex flex-col items-center">
+        <section className="hero-glow hero-grid w-full py-16 md:py-20 px-[5%] text-center bg-background relative overflow-hidden">
+          <div className="relative z-10">
+            <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight text-white">
+              Upgrade to <span className="gradient-text">Employer</span>
+            </h1>
+            <p className="text-text-secondary text-lg max-w-xl mx-auto">
+              You are currently logged in as a Job Seeker. To post jobs, you can upgrade your account to an Employer account.
+            </p>
+          </div>
+        </section>
+        <div className="section-transition-dark-to-light w-full" />
+        <section className="section-light w-full py-12 md:py-16 px-[5%]">
+          <div className="max-w-[500px] mx-auto card-light p-6 md:p-10">
+            {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-medium">{error}</div>}
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              setIsUpgrading(true);
+              setError('');
+              try {
+                const res = await fetch('/api/user/upgrade', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
+                  body: JSON.stringify({ company_name: upgradeCompany })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to upgrade');
+                // Reload window to refresh auth context
+                window.location.reload();
+              } catch(err: any) {
+                setError(err.message);
+                setIsUpgrading(false);
+              }
+            }} className="flex flex-col gap-6">
+              <div>
+                <label className="block text-sm font-bold text-text-dark-secondary mb-2">Your Company Name *</label>
+                <input 
+                  type="text" required
+                  placeholder="e.g. Anthropic" 
+                  className="input-light w-full"
+                  value={upgradeCompany} onChange={(e) => setUpgradeCompany(e.target.value)}
+                />
+              </div>
+              <button 
+                type="submit" 
+                disabled={isUpgrading}
+                className="w-full px-6 py-3 rounded-xl font-bold text-lg text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-1 shadow-[0_4px_15px_rgba(109,40,217,0.35)] transition-all disabled:opacity-50"
+              >
+                {isUpgrading ? 'Upgrading...' : 'Upgrade Account'}
+              </button>
+            </form>
+          </div>
+        </section>
       </div>
     );
   }

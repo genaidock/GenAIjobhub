@@ -22,6 +22,7 @@ export async function GET() {
     const { data, error } = await supabase
       .from('gigs')
       .select('*')
+      .eq('payment_status', 'paid')
       .order('created_at', { ascending: false });
 
     if (error) {

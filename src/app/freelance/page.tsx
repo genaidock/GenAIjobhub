@@ -27,6 +27,7 @@ export default async function FreelanceBoard() {
 
   const { data: { session } } = await supabase.auth.getSession();
   let isSeeker = false;
+  let isEmployer = false;
   let userProposals: any[] = [];
 
   if (session) {
@@ -37,6 +38,7 @@ export default async function FreelanceBoard() {
       .single();
     
     isSeeker = profile?.user_type === 'seeker';
+    isEmployer = profile?.user_type === 'employer';
 
     if (isSeeker) {
       const { data: proposals } = await supabase
@@ -68,9 +70,15 @@ export default async function FreelanceBoard() {
           <p className="text-text-secondary text-lg mb-8 max-w-xl mx-auto">
             Short-term contracts, project-based work, and consulting opportunities.
           </p>
-          <Link href="/post-job" className="inline-block px-8 py-3 rounded-xl font-bold text-white border border-white/15 hover:bg-white/5 hover:border-white/25 transition-all backdrop-blur-sm">
-            Post a Gig
-          </Link>
+          {(!session || isEmployer) ? (
+            <Link href="/post-gig" className="inline-block px-8 py-3 rounded-xl font-bold text-white border border-white/15 hover:bg-white/5 hover:border-white/25 transition-all backdrop-blur-sm">
+              Post a Gig
+            </Link>
+          ) : (
+            <div className="inline-block px-8 py-3 rounded-xl font-bold text-white/50 border border-white/10 bg-black/20 cursor-not-allowed backdrop-blur-sm" title="Only employers can post gigs. Please log in as an employer.">
+              Post a Gig (Employers Only)
+            </div>
+          )}
         </div>
       </section>
 

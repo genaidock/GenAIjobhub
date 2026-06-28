@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Briefcase, Menu, X, ChevronDown, LogOut, LayoutDashboard, Brain, FileText } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
@@ -36,7 +37,7 @@ export default function Navbar() {
     : profile?.email?.[0]?.toUpperCase() ?? '?';
 
   let displayName = 'Job Seeker';
-  if (userType === 'employer') {
+  if (userType === 'employer' || userType === 'both') {
     displayName = profile?.company_name || profile?.full_name || 'Employer';
   } else if (userType === 'admin') {
     displayName = 'Admin';
@@ -48,7 +49,9 @@ export default function Navbar() {
     <nav className="navbar-glow flex justify-between items-center py-4 px-[5%] bg-background/80 backdrop-blur-xl sticky top-0 z-50">
       {/* Logo */}
       <Link href="/" className="text-2xl font-extrabold text-text-primary flex items-center gap-2.5 tracking-tight">
-        <Briefcase className="text-accent-primary w-6 h-6" />
+        <div className="w-8 h-8 relative flex-shrink-0">
+          <Image src="/logo.png" alt="GenAIJobHub Logo" fill sizes="32px" className="object-contain" />
+        </div>
         GenAI<span className="text-accent-primary">JobHub</span>
       </Link>
 
@@ -72,7 +75,7 @@ export default function Navbar() {
         ) : user && profile ? (
           <>
             {/* Role-specific primary CTA */}
-            {userType === 'employer' ? (
+            {['employer', 'both'].includes(userType as string) ? (
               <Link
                 href="/post-job"
                 className="px-5 py-2.5 rounded-lg font-semibold text-sm text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-0.5 shadow-[0_4px_15px_rgba(109,40,217,0.35)] transition-all"
@@ -118,7 +121,7 @@ export default function Navbar() {
                   <Link href="/profile" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
                     <FileText className="w-4 h-4" /> My Profile
                   </Link>
-                  {userType === 'employer' ? (
+                  {['employer', 'both'].includes(userType as string) ? (
                     <>
                       <Link href="/post-job" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
                         <FileText className="w-4 h-4" /> Post a Job
@@ -126,6 +129,11 @@ export default function Navbar() {
                       <Link href="/dashboard/employer" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
                         <LayoutDashboard className="w-4 h-4" /> My Listings
                       </Link>
+                      {userType === 'both' && (
+                        <Link href="/applications" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
+                          <FileText className="w-4 h-4" /> My Applications
+                        </Link>
+                      )}
                     </>
                   ) : userType === 'admin' ? (
                     <>
@@ -185,10 +193,13 @@ export default function Navbar() {
                 Signed in as <span className="text-text-primary font-semibold">{displayName}</span>
                 <span className="ml-2 text-xs text-accent-primary capitalize">({userType})</span>
               </p>
-              {userType === 'employer' ? (
+              {['employer', 'both'].includes(userType as string) ? (
                 <>
                   <Link href="/post-job" onClick={() => setIsMenuOpen(false)} className="font-medium text-accent-primary">Post a Job</Link>
                   <Link href="/dashboard/employer" onClick={() => setIsMenuOpen(false)} className="font-medium text-text-secondary hover:text-text-primary">My Listings</Link>
+                  {userType === 'both' && (
+                    <Link href="/applications" onClick={() => setIsMenuOpen(false)} className="font-medium text-text-secondary hover:text-text-primary">My Applications</Link>
+                  )}
                 </>
               ) : userType === 'admin' ? (
                 <>
