@@ -56,7 +56,7 @@ export async function POST(req: Request) {
       .eq('id', user.id)
       .single();
 
-    if (profileError || profileData?.user_type !== 'employer') {
+    if (profileError || !['employer', 'admin'].includes(profileData?.user_type)) {
       return NextResponse.json(
         { error: 'Forbidden: Only employers can post jobs.' },
         { status: 403 }

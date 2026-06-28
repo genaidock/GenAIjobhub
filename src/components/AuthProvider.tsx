@@ -6,7 +6,7 @@ import type { User, Session } from '@supabase/supabase-js';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export type UserType = 'employer' | 'seeker' | 'admin' | 'both' | null;
+export type UserType = 'employer' | 'seeker' | 'admin' | null;
 
 export interface Profile {
   id: string;

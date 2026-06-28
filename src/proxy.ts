@@ -55,14 +55,14 @@ export async function proxy(request: NextRequest) {
 
     const userType = profile?.user_type;
 
-    if (needsEmployer && !['employer', 'both', 'admin'].includes(userType)) {
-      // Seeker trying employer route → their dashboard
+    if (needsEmployer && !['employer', 'admin'].includes(userType)) {
+      // Seeker trying employer route → redirect to jobs
       return NextResponse.redirect(new URL('/jobs', request.url));
     }
 
-    if (needsSeeker && !['seeker', 'both', 'admin'].includes(userType)) {
-      // Employer trying seeker route → their dashboard
-      return NextResponse.redirect(new URL('/post-job', request.url));
+    if (needsSeeker && !['seeker', 'admin'].includes(userType)) {
+      // Employer trying seeker route → redirect to their dashboard
+      return NextResponse.redirect(new URL('/dashboard/employer', request.url));
     }
   }
 
