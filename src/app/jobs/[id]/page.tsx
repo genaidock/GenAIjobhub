@@ -98,6 +98,16 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
   const isOwner = user && user.id === job.employer_id;
   const isAdmin = user && user.email?.toLowerCase() === 'admin@genaijobhub.com';
 
+  let userType = null;
+  if (user) {
+    const { data: profile } = await supabaseServer
+      .from('profiles')
+      .select('user_type')
+      .eq('id', user.id)
+      .single();
+    if (profile) userType = profile.user_type;
+  }
+
   let hasApplied = false;
   if (user && !isOwner && !isAdmin) {
     const { data: existingApp } = await supabaseServer
@@ -267,6 +277,13 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                     Your Listing
                   </button>
                   <p className="text-xs text-text-dark-tertiary">You are the owner of this job posting.</p>
+                </>
+              ) : (userType === 'employer' || userType === 'admin') && !isOwner ? (
+                <>
+                  <button disabled className="block w-full py-3.5 rounded-xl font-bold text-white bg-slate-300 dark:bg-slate-800 cursor-not-allowed opacity-50 mb-3">
+                    Employers Cannot Apply
+                  </button>
+                  <p className="text-xs text-text-dark-tertiary">Only Job Seekers can apply to jobs.</p>
                 </>
               ) : job.apply_url ? (
                 <>
