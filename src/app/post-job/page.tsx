@@ -47,23 +47,26 @@ function PostJobContent() {
     validity_days: '30', // Default validity is 30 days
   });
 
-  // Repost logic: prefill form if ?repost=[id] is in query parameters
+  // Repost & Edit logic: prefill form if ?repost=[id] or ?edit=[id] is in query parameters
+  const isEditMode = !!searchParams.get('edit');
+  const editId = searchParams.get('edit');
+  
   useEffect(() => {
-    const repostId = searchParams.get('repost');
-    if (repostId && user) {
-      async function fetchRepostJob() {
+    const jobId = searchParams.get('repost') || searchParams.get('edit');
+    if (jobId && user) {
+      async function fetchJobData() {
         try {
           const { data: job, error: fetchErr } = await supabase
             .from('jobs')
             .select('*')
-            .eq('id', repostId)
+            .eq('id', jobId)
             .single();
 
           if (fetchErr) throw fetchErr;
 
           if (job) {
             if (job.employer_id !== user?.id) {
-              setError("Unauthorized to repost this job.");
+              setError(`Unauthorized to ${isEditMode ? 'edit' : 'repost'} this job.`);
               return;
             }
 
@@ -75,17 +78,26 @@ function PostJobContent() {
               salary_range: job.salary_range || '',
               description: job.description || '',
               apply_url: job.apply_url || '',
-              validity_days: '30', // Reset to default 30 days for the new listing
+              validity_days: '30', // Reset to default 30 days for new listings, ignored for edits
             });
+            
+            // Extract currency from salary if present
+            if (job.salary_range) {
+              const match = job.salary_range.match(/^[₹$€£C]/);
+              if (match) {
+                setCurrency(match[0]);
+                setFormData(prev => ({ ...prev, salary_range: job.salary_range.replace(/^[₹$€£C]/, '') }));
+              }
+            }
           }
         } catch (err: any) {
-          console.error("Failed to fetch job for reposting:", err.message);
-          setError("Failed to prefill job details for reposting.");
+          console.error(`Failed to fetch job for ${isEditMode ? 'editing' : 'reposting'}:`, err.message);
+          setError(`Failed to prefill job details for ${isEditMode ? 'editing' : 'reposting'}.`);
         }
       }
-      fetchRepostJob();
+      fetchJobData();
     }
-  }, [user, searchParams]);
+  }, [user, searchParams, isEditMode]);
 
   const [isFeatured, setIsFeatured] = useState(false);
   const [currency, setCurrency] = useState('$');
@@ -141,15 +153,19 @@ function PostJobContent() {
         finalSalaryRange = `${currency}${finalSalaryRange}`;
       }
 
-      // 1. Load Razorpay if featuring
-      if (isFeatured) {
+      // 1. Handle API submission (Edit vs New Post)
+      const apiUrl = isEditMode ? `/api/jobs/${editId}` : '/api/jobs';
+      const apiMethod = isEditMode ? 'PATCH' : 'POST';
+
+      if (isFeatured && !isEditMode) {
         const res = await loadRazorpayScript();
         if (!res) {
           throw new Error('Razorpay SDK failed to load. Are you online?');
         }
       }
-      const res = await fetch('/api/jobs', {
-        method: 'POST',
+      
+      const res = await fetch(apiUrl, {
+        method: apiMethod,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session?.access_token}`,
@@ -168,10 +184,10 @@ function PostJobContent() {
         throw new Error(data.error || 'Failed to post job');
       }
 
-      const jobId = data.job.id;
+      const jobId = isEditMode ? editId : data.job.id;
 
-      // 3. Handle Payment if Featured
-      if (isFeatured) {
+      // 3. Handle Payment if Featured (Skip for Edits since we don't allow featuring an existing job this way yet)
+      if (isFeatured && !isEditMode) {
         // Create Order
         const orderRes = await fetch('/api/razorpay/create-order', {
           method: 'POST',
@@ -392,12 +408,12 @@ function PostJobContent() {
       <section className="hero-glow hero-grid w-full py-16 md:py-20 px-[5%] text-center bg-background relative overflow-hidden">
         <div className="absolute top-1/2 right-1/4 w-[250px] h-[250px] rounded-full bg-purple-600/15 blur-[100px] animate-pulse pointer-events-none" />
         <div className="relative z-10">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 tracking-tight">
-            Post an <span className="gradient-text">AI Job</span>
-          </h1>
-          <p className="text-text-secondary text-lg max-w-xl mx-auto">
-            Reach thousands of top-tier AI professionals, prompt engineers, and ML researchers.
-          </p>
+            <h1 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
+              {isEditMode ? 'Edit Job' : 'Post a New Job'}
+            </h1>
+            <p className="text-text-secondary text-sm md:text-base mt-2 max-w-xl">
+              {isEditMode ? 'Update your listing details. Changes will be live immediately.' : 'Reach thousands of top-tier AI professionals, prompt engineers, and ML researchers.'}
+            </p>
         </div>
       </section>
 
@@ -492,19 +508,47 @@ function PostJobContent() {
                     value={formData.apply_url} onChange={handleChange}
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-bold text-text-dark-secondary mb-2">Job Listing Validity *</label>
-                  <select 
-                    name="validity_days" required
-                    className="input-light"
-                    value={formData.validity_days} onChange={handleChange}
-                  >
-                    <option value="10">10 Days</option>
-                    <option value="15">15 Days</option>
-                    <option value="30">30 Days</option>
-                    <option value="45">45 Days (Max)</option>
-                  </select>
-                </div>
+
+                {/* Hide Featured and Validity options during Edit Mode */}
+                {!isEditMode && (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-bold text-text-dark-secondary mb-2">Listing Duration *</label>
+                        <select
+                          name="validity_days"
+                          value={formData.validity_days}
+                          onChange={handleChange}
+                          className="input-light w-full"
+                        >
+                          <option value="15">15 Days (Short Term)</option>
+                          <option value="30">30 Days (Standard)</option>
+                          <option value="45">45 Days (Extended)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="mt-8 border-t border-border-light pt-8">
+                      <label className="flex items-start gap-4 p-5 rounded-2xl border-2 border-accent-primary/20 bg-accent-primary/5 cursor-pointer hover:bg-accent-primary/10 transition-colors">
+                        <div className="pt-1">
+                          <input 
+                            type="checkbox" 
+                            className="w-5 h-5 rounded border-accent-primary accent-accent-primary" 
+                            checked={isFeatured} 
+                            onChange={(e) => setIsFeatured(e.target.checked)} 
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+                            <span className="font-bold text-text-dark">Feature this job listing</span>
+                          </div>
+                          <p className="text-sm text-text-dark-secondary">Highlight your job in search results and pin it to the top of the board for maximum visibility. (+$99)</p>
+                        </div>
+                      </label>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div>
@@ -527,51 +571,26 @@ function PostJobContent() {
                 />
               </div>
 
-              <label className="flex items-start gap-3 cursor-pointer text-text-dark-secondary text-sm mt-4 p-4 bg-slate-50 border border-border-light rounded-xl">
-                <input 
-                  type="checkbox" 
-                  required
-                  className="mt-1 w-5 h-5 rounded border-border-light accent-accent-primary shrink-0" 
-                />
-                <span>
-                  <strong>Disclaimer:</strong> I understand and agree that GenAIJobHub is a listing portal only. We are not responsible for any disputes arising from further business, payments, or contracts related to this posting.
-                </span>
-              </label>
+              {!isEditMode && (
+                <label className="flex items-start gap-3 cursor-pointer text-text-dark-secondary text-sm mt-4 p-4 bg-slate-50 border border-border-light rounded-xl">
+                  <input 
+                    type="checkbox" 
+                    required
+                    className="mt-1 w-5 h-5 rounded border-border-light accent-accent-primary shrink-0" 
+                  />
+                  <span>
+                    <strong>Disclaimer:</strong> I understand and agree that GenAIJobHub is a listing portal only. We are not responsible for any disputes arising from further business, payments, or contracts related to this posting.
+                  </span>
+                </label>
+              )}
 
-              <div className="border-t border-border-light pt-6 mt-2 flex flex-col md:flex-row justify-between items-center gap-6">
-                
-                {/* Featured Toggle */}
-                <div className={`flex items-start gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer w-full md:w-auto ${isFeatured ? 'border-accent-primary bg-accent-primary/5' : 'border-border-light bg-white hover:border-accent-primary/30'}`}
-                  onClick={() => setIsFeatured(!isFeatured)}
-                >
-                  <div className="pt-1">
-                    <input 
-                      type="checkbox"
-                      className="w-5 h-5 rounded border-border-light accent-accent-primary cursor-pointer pointer-events-none"
-                      checked={isFeatured}
-                      readOnly
-                    />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <Star className={`w-5 h-5 ${isFeatured ? 'text-accent-primary fill-accent-primary' : 'text-text-dark-tertiary'}`} />
-                      <span className="font-bold text-text-dark">Boost to Featured</span>
-                      <span className="text-xs font-bold px-2 py-0.5 rounded bg-accent-primary/10 text-accent-primary">₹999</span>
-                    </div>
-                    <p className="text-sm text-text-dark-secondary">
-                      Highlight your job at the top of the board for 30 days.
-                    </p>
-                  </div>
-                </div>
-
+              <div className="border-t border-border-light pt-6 mt-2 flex flex-col md:flex-row justify-end items-center gap-6">
                 <button 
                   type="submit" 
-                  disabled={isSubmitting}
-                  className="w-full md:w-auto px-8 py-4 rounded-xl font-bold text-lg text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-1 shadow-[0_4px_15px_rgba(109,40,217,0.35)] hover:shadow-[0_8px_25px_rgba(109,40,217,0.45)] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  disabled={isSubmitting || isGeneratingJD}
+                  className="w-full md:w-auto px-8 py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-1 shadow-[0_4px_15px_rgba(109,40,217,0.35)] hover:shadow-[0_8px_25px_rgba(109,40,217,0.45)] transition-all disabled:opacity-70 disabled:hover:translate-y-0"
                 >
-                  {isSubmitting 
-                    ? (isFeatured ? 'Processing...' : 'Posting Job...') 
-                    : (isFeatured ? 'Checkout & Post' : 'Post Job for Free')}
+                  {isSubmitting ? (isEditMode ? 'Updating...' : 'Processing...') : (isEditMode ? 'Update Job Listing' : (isFeatured ? 'Proceed to Payment' : 'Post Job (1 Credit)'))}
                 </button>
               </div>
 

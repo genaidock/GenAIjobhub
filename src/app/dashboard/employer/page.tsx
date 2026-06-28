@@ -375,6 +375,15 @@ function EmployerDashboardContent() {
                                   Extend
                                 </button>
                               )}
+                              {/* Edit Button */}
+                              {job.status !== 'closed' && (
+                                <Link
+                                  href={`/post-job?edit=${job.id}`}
+                                  className="px-3.5 py-1.5 rounded-lg border border-border-light text-text-dark hover:bg-slate-100 transition-colors text-xs font-bold flex items-center gap-1"
+                                >
+                                  <FileText className="w-3.5 h-3.5 text-text-dark-secondary" /> Edit
+                                </Link>
+                              )}
                               {/* Close Button */}
                               {job.status !== 'closed' && (
                                 <button
