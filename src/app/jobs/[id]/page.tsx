@@ -93,15 +93,16 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
     notFound();
   }
 
+  // Always get current user to determine ownership/permissions
+  const { data: { user } } = await supabaseServer.auth.getUser();
+  const isOwner = user && user.id === job.employer_id;
+  const isAdmin = user && user.email?.toLowerCase() === 'admin@genaijobhub.com';
+
   // Security gate: if job is not approved, verify user is owner or admin
   const isPending = job.moderation_status === 'pending';
   const isRejected = job.moderation_status === 'rejected';
 
   if (isPending || isRejected) {
-    const { data: { user } } = await supabaseServer.auth.getUser();
-    const isOwner = user && user.id === job.employer_id;
-    const isAdmin = user && user.email?.toLowerCase() === 'admin@genaijobhub.com';
-
     if (!isOwner && !isAdmin) {
       notFound();
     }
@@ -245,6 +246,13 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                     Listing Expired
                   </button>
                   <p className="text-xs text-text-dark-tertiary">This opportunity is no longer open.</p>
+                </>
+              ) : isOwner ? (
+                <>
+                  <button disabled className="block w-full py-3.5 rounded-xl font-bold text-white bg-slate-300 dark:bg-slate-800 cursor-not-allowed opacity-50 mb-3">
+                    Your Listing
+                  </button>
+                  <p className="text-xs text-text-dark-tertiary">You are the owner of this job posting.</p>
                 </>
               ) : job.apply_url ? (
                 <>
