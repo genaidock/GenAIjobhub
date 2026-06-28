@@ -271,4 +271,6 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
         </div>
       </div>
     )}
-  </>;
+  </>
+  );
+}
