@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import DOMPurify from 'isomorphic-dompurify';
+import sanitizeHtml from 'sanitize-html';
 
 export async function GET() {
   try {
@@ -51,9 +51,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Description too long" }, { status: 400 });
     }
 
-    const sanitizedDescription = DOMPurify.sanitize(gigData.description, {
-      ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'ul', 'ol', 'li', 'br', 'h1', 'h2', 'h3', 'h4'],
-      ALLOWED_ATTR: ['href', 'target', 'rel']
+    const sanitizedDescription = sanitizeHtml(gigData.description, {
+      allowedTags: ['b', 'i', 'em', 'strong', 'a', 'p', 'ul', 'ol', 'li', 'br', 'h1', 'h2', 'h3', 'h4'],
+      allowedAttributes: {
+        'a': ['href', 'target', 'rel']
+      }
     });
 
     const cookieStore = await cookies();
