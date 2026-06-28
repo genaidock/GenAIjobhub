@@ -290,7 +290,10 @@ function PostJobContent() {
     try {
       const res = await fetch('/api/generate-jd', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
+        },
         body: JSON.stringify({ title: formData.title, company_name: formData.company_name }),
       });
       const data = await res.json();
