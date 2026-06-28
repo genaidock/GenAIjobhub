@@ -449,12 +449,12 @@ function PostJobContent() {
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-text-dark-secondary mb-2">Salary Range</label>
-                  <div className="flex border border-border-light rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-accent-primary focus-within:border-transparent transition-all">
+                  <div className="flex border-[1.5px] border-border-light rounded-xl overflow-hidden focus-within:border-accent-primary focus-within:shadow-[0_0_0_3px_rgba(109,40,217,0.1)] transition-all bg-[var(--bg-light-secondary)]">
                     <select 
                       name="salary_currency"
                       value={currency}
                       onChange={(e) => setCurrency(e.target.value)}
-                      className="bg-slate-100 dark:bg-slate-800 text-text-dark px-3 py-3 border-r border-border-light outline-none font-medium text-sm"
+                      className="bg-transparent text-text-dark px-4 py-[0.875rem] border-r-[1.5px] border-border-light outline-none font-medium text-[0.95rem] focus:outline-none"
                     >
                       <option value="$">USD ($)</option>
                       <option value="₹">INR (₹)</option>
@@ -465,7 +465,7 @@ function PostJobContent() {
                     <input 
                       type="text" name="salary_range"
                       placeholder="e.g. 150k - 200k" 
-                      className="bg-white dark:bg-slate-900 text-text-dark w-full px-4 py-3 outline-none"
+                      className="bg-transparent text-text-dark w-full px-4 py-[0.875rem] outline-none placeholder-[var(--text-dark-tertiary)] focus:outline-none text-[0.95rem]"
                       value={formData.salary_range} 
                       onChange={handleChange}
                     />
