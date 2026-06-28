@@ -15,8 +15,16 @@ interface SalaryRole {
   ai_market_insight: string;
   last_updated: string;
 }
+interface TopCompany {
+  id: string;
+  name: string;
+  logo_url: string | null;
+  ai_focus: string;
+  estimated_salary_range: string;
+  hiring_insight: string;
+}
 
-export default function SalaryExplorerClient({ roles, errorMsg, lastUpdated }: { roles: SalaryRole[], errorMsg: string, lastUpdated: string }) {
+export default function SalaryExplorerClient({ roles, errorMsg, lastUpdated, topCompanies = [] }: { roles: SalaryRole[], errorMsg: string, lastUpdated: string, topCompanies?: TopCompany[] }) {
   const [activeExperience, setActiveExperience] = useState<ExperienceLevel>('Mid-Level');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -145,6 +153,53 @@ export default function SalaryExplorerClient({ roles, errorMsg, lastUpdated }: {
             </div>
           )}
         </div>
+
+        {/* Top AI Hiring Companies Section */}
+        {topCompanies && topCompanies.length > 0 && (
+          <div className="mt-16 mb-12">
+            <div className="text-center mb-10">
+              <h2 className="text-3xl md:text-4xl font-extrabold mb-4 text-white">
+                Top AI Hiring <span className="text-accent-primary">Powerhouses</span>
+              </h2>
+              <p className="text-text-secondary text-lg">
+                The companies driving the AGI frontier and their estimated compensation ranges.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {topCompanies.map((company) => (
+                <div key={company.id} className="bg-bg-card border border-white/10 p-6 rounded-2xl hover:border-accent-primary/50 hover:shadow-[0_8px_30px_rgba(109,40,217,0.15)] transition-all group relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-accent-primary/5 rounded-bl-full -z-10 group-hover:bg-accent-primary/10 transition-colors" />
+                  
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-2xl font-bold text-white">{company.name}</h3>
+                    <div className="px-3 py-1 bg-accent-primary/10 text-accent-primary text-xs font-bold rounded-full border border-accent-primary/20">
+                      Top Tier
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-xs text-text-secondary uppercase tracking-wider font-semibold mb-1">AI Focus</p>
+                      <p className="text-sm font-medium text-text-primary">{company.ai_focus}</p>
+                    </div>
+                    
+                    <div>
+                      <p className="text-xs text-text-secondary uppercase tracking-wider font-semibold mb-1">Est. Top Salary Range</p>
+                      <p className="text-lg font-bold text-[#10b981]">{company.estimated_salary_range}</p>
+                    </div>
+                    
+                    <div className="bg-white/5 p-3 rounded-lg border border-white/5">
+                      <p className="text-xs text-text-secondary italic">
+                        "{company.hiring_insight}"
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

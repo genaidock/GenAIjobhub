@@ -31,8 +31,24 @@ export default async function SalaryExplorer() {
     errorMsg = "Database tables not found. Please ensure you've run the Phase 6 SQL migration to seed the massive Salary Matrix.";
   }
 
+  // Try to fetch top companies data
+  let topCompanies: any[] = [];
+  try {
+    const { data: companiesData, error: companiesError } = await supabase
+      .from('top_companies')
+      .select('*')
+      .order('created_at', { ascending: true });
+    
+    if (companiesError) throw companiesError;
+    if (companiesData) {
+      topCompanies = companiesData;
+    }
+  } catch (err: any) {
+    console.error('Failed to load top companies:', err);
+  }
+
   // If no data, we pass an empty array and let the client component handle the empty state
   // Though typically we'd show the error boundary or the UI with 0 results.
   
-  return <SalaryExplorerClient roles={roles} errorMsg={errorMsg} lastUpdated={lastUpdated} />;
+  return <SalaryExplorerClient roles={roles} errorMsg={errorMsg} lastUpdated={lastUpdated} topCompanies={topCompanies} />;
 }
