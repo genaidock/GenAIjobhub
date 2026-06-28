@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
@@ -27,23 +27,14 @@ function PostJobContent() {
   const [isGeneratingJD, setIsGeneratingJD] = useState(false);
   const [showPackageModal, setShowPackageModal] = useState(false);
   const [isPurchasingPackage, setIsPurchasingPackage] = useState(false);
-  const { user, userType, session, isLoading: authLoading, refreshProfile } = useAuth();
-  const hasRefreshed = useRef(false); // useRef prevents infinite loop from re-renders
-  const [profileReady, setProfileReady] = useState(false);
+  const { user, userType, session, isLoading: authLoading } = useAuth();
 
-  // Force-refresh profile once on mount to fix race condition:
-  // AuthProvider may have fetched profile before OAuth callback updated user_type='employer'
+  // Simple guard: redirect to login if not authenticated
   useEffect(() => {
-    if (authLoading) return; // Wait for initial auth to settle
-    if (!user) {
+    if (!authLoading && !user) {
       router.replace('/login/employer?redirect=/post-job');
-      return;
     }
-    if (!hasRefreshed.current) {
-      hasRefreshed.current = true; // Set synchronously to prevent double-call
-      refreshProfile().then(() => setProfileReady(true));
-    }
-  }, [user, authLoading, refreshProfile, router]);
+  }, [user, authLoading, router]);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -96,8 +87,8 @@ function PostJobContent() {
     }
   }, [user, searchParams]);
 
-  // Show spinner while auth loads OR while waiting for profile refresh
-  if (authLoading || !user || !profileReady) {
+  // Show spinner only while auth is loading
+  if (authLoading || !user) {
     return (
       <div className="flex items-center justify-center min-h-[70vh]">
         <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
