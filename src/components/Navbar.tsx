@@ -36,7 +36,7 @@ export default function Navbar() {
     ? profile.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
     : profile?.email?.[0]?.toUpperCase() ?? '?';
 
-  let displayName = 'Job Seeker';
+  let displayName = profile?.full_name || profile?.company_name || profile?.email?.split('@')[0] || (userType === 'employer' ? 'Employer' : 'Job Seeker');
   return (
     <nav className="w-full flex items-center justify-between py-4 px-6 md:px-[5%] bg-background border-b border-white/10 relative z-50">
       {/* Logo */}
