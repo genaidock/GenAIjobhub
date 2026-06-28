@@ -88,6 +88,24 @@ function PostJobContent() {
   }, [user, searchParams]);
 
   const [isFeatured, setIsFeatured] = useState(false);
+  const [currency, setCurrency] = useState('$');
+
+  // Auto-detect currency based on location
+  useEffect(() => {
+    if (!formData.location) return;
+    const loc = formData.location.toLowerCase();
+    if (loc.includes('india') || loc.includes('pune') || loc.includes('bangalore') || loc.includes('mumbai') || loc.includes('delhi') || loc.includes('hyderabad')) {
+      setCurrency('₹');
+    } else if (loc.includes('uk') || loc.includes('london')) {
+      setCurrency('£');
+    } else if (loc.includes('europe') || loc.includes('germany') || loc.includes('france') || loc.includes('netherlands')) {
+      setCurrency('€');
+    } else if (loc.includes('canada') || loc.includes('toronto')) {
+      setCurrency('C$');
+    } else if (loc.includes('us') || loc.includes('usa') || loc.includes('united states')) {
+      setCurrency('$');
+    }
+  }, [formData.location]);
 
   // Show spinner only while auth is loading
   if (authLoading || !user) {
@@ -117,6 +135,12 @@ function PostJobContent() {
     setError('');
 
     try {
+      // Format salary range with currency if not already present
+      let finalSalaryRange = formData.salary_range.trim();
+      if (finalSalaryRange && !/^[₹$€£C]/.test(finalSalaryRange)) {
+        finalSalaryRange = `${currency}${finalSalaryRange}`;
+      }
+
       // 1. Load Razorpay if featuring
       if (isFeatured) {
         const res = await loadRazorpayScript();
@@ -130,7 +154,7 @@ function PostJobContent() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session?.access_token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, salary_range: finalSalaryRange }),
       });
 
       const data = await res.json();
@@ -425,12 +449,27 @@ function PostJobContent() {
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-text-dark-secondary mb-2">Salary Range</label>
-                  <input 
-                    type="text" name="salary_range"
-                    placeholder="e.g. $150k - $200k" 
-                    className="input-light"
-                    value={formData.salary_range} onChange={handleChange}
-                  />
+                  <div className="flex border border-border-light rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-accent-primary focus-within:border-transparent transition-all">
+                    <select 
+                      name="salary_currency"
+                      value={currency}
+                      onChange={(e) => setCurrency(e.target.value)}
+                      className="bg-slate-100 dark:bg-slate-800 text-text-dark px-3 py-3 border-r border-border-light outline-none font-medium text-sm"
+                    >
+                      <option value="$">USD ($)</option>
+                      <option value="₹">INR (₹)</option>
+                      <option value="€">EUR (€)</option>
+                      <option value="£">GBP (£)</option>
+                      <option value="C$">CAD (C$)</option>
+                    </select>
+                    <input 
+                      type="text" name="salary_range"
+                      placeholder="e.g. 150k - 200k" 
+                      className="bg-white dark:bg-slate-900 text-text-dark w-full px-4 py-3 outline-none"
+                      value={formData.salary_range} 
+                      onChange={handleChange}
+                    />
+                  </div>
                 </div>
               </div>
 
