@@ -50,17 +50,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchProfile = useCallback(async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-    if (error) {
-      console.error('[AuthProvider] Failed to fetch profile:', error.message);
+      if (error) {
+        console.error('[AuthProvider] Failed to fetch profile:', error.message);
+        return null;
+      }
+      return data as Profile;
+    } catch (err: any) {
+      console.error('[AuthProvider] Unexpected error fetching profile:', err.message);
       return null;
     }
-    return data as Profile;
   }, []);
 
   const refreshProfile = useCallback(async () => {
