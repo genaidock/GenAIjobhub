@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
 
 // Routes that require EMPLOYER role
 const EMPLOYER_ONLY = ['/post-job', '/dashboard/employer'];
@@ -24,14 +24,29 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Create a Supabase client that can read cookies from the request
-  const supabase = createClient(
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
+
+  const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      auth: { detectSessionInUrl: false, persistSession: false },
-      global: {
-        headers: { cookie: request.headers.get('cookie') ?? '' },
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
+          response = NextResponse.next({
+            request,
+          });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
+        },
       },
     }
   );
@@ -66,7 +81,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
