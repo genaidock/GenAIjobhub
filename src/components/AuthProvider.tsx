@@ -76,6 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    let fallbackTimeout: NodeJS.Timeout;
 
     // Explicitly get the session on mount to prevent infinite loading if INITIAL_SESSION is missed
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -86,8 +87,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const p = await fetchProfile(session.user.id);
         if (mounted) setProfile(p);
       }
-      if (mounted) setIsLoading(false);
+      if (mounted) {
+        setIsLoading(false);
+        clearTimeout(fallbackTimeout);
+      }
     });
+
+    fallbackTimeout = setTimeout(() => {
+      if (mounted) setIsLoading(false);
+    }, 3000);
 
     // Listen to auth state changes (which includes INITIAL_SESSION in v2)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(

@@ -71,8 +71,9 @@ function EmployerDashboardContent() {
 
   if (authLoading || !user || !['employer', 'admin'].includes(userType as string)) {
     return (
-      <div className="flex items-center justify-center min-h-[70vh]">
-        <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
+      <div className="flex flex-col items-center justify-center min-h-[70vh]">
+        <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-text-secondary text-sm">Authenticating employer...</p>
       </div>
     );
   }
