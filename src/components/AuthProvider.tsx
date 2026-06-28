@@ -17,6 +17,7 @@ export interface Profile {
   user_type: UserType;
   plan: 'free' | 'pro' | 'elite';
   coach_credits_remaining: number;
+  is_verified?: boolean;
 }
 
 interface AuthContextValue {

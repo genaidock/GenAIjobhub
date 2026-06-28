@@ -18,7 +18,7 @@ import {
 
 function EmployerDashboardContent() {
   const router = useRouter();
-  const { user, userType, session, isLoading: authLoading } = useAuth();
+  const { user, userType, session, profile, isLoading: authLoading } = useAuth();
   
   const [jobs, setJobs] = useState<any[]>([]);
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
@@ -247,6 +247,14 @@ function EmployerDashboardContent() {
 
   return (
     <div className="flex flex-col items-center">
+      {profile?.is_verified === false && (
+        <div className="w-full bg-amber-500/10 border-b border-amber-500/20 py-3 px-[5%] text-center">
+          <p className="text-amber-500 text-sm font-semibold flex justify-center items-center gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            Your account is pending admin verification. You will be able to post jobs once verified.
+          </p>
+        </div>
+      )}
       {/* Dark Banner */}
       <section className="hero-glow hero-grid w-full py-12 md:py-16 px-[5%] bg-background relative overflow-hidden">
         <div className="max-w-[1200px] mx-auto w-full relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -258,12 +266,21 @@ function EmployerDashboardContent() {
               Manage your active listings, view application counts, and extend or repost job roles.
             </p>
           </div>
-          <Link 
-            href="/post-job" 
-            className="px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-0.5 shadow-md hover:shadow-lg transition-all text-sm flex items-center gap-2"
-          >
-            Post a New Job <ArrowUpRight className="w-4 h-4" />
-          </Link>
+          {profile?.is_verified === false ? (
+            <button 
+              disabled
+              className="px-6 py-3 rounded-xl font-bold text-white bg-slate-400 cursor-not-allowed shadow-md text-sm flex items-center gap-2"
+            >
+              Post a New Job <ArrowUpRight className="w-4 h-4" />
+            </button>
+          ) : (
+            <Link 
+              href="/post-job" 
+              className="px-6 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-0.5 shadow-md hover:shadow-lg transition-all text-sm flex items-center gap-2"
+            >
+              Post a New Job <ArrowUpRight className="w-4 h-4" />
+            </Link>
+          )}
         </div>
       </section>
 
@@ -290,12 +307,21 @@ function EmployerDashboardContent() {
               <p className="text-text-dark-secondary text-sm mb-6">
                 Post your first AI role to reach thousands of prompt engineers and ML researchers.
               </p>
-              <Link 
-                href="/post-job" 
-                className="inline-block px-6 py-3 rounded-xl font-bold text-white bg-accent-primary hover:bg-accent-primary/95 transition-all text-sm"
-              >
-                Post Job Now
-              </Link>
+              {profile?.is_verified === false ? (
+                <button 
+                  disabled
+                  className="inline-block px-6 py-3 rounded-xl font-bold text-white bg-slate-400 cursor-not-allowed text-sm"
+                >
+                  Post Job Now
+                </button>
+              ) : (
+                <Link 
+                  href="/post-job" 
+                  className="inline-block px-6 py-3 rounded-xl font-bold text-white bg-accent-primary hover:bg-accent-primary/95 transition-all text-sm"
+                >
+                  Post Job Now
+                </Link>
+              )}
             </div>
           ) : (
             <div className="card-light overflow-hidden">

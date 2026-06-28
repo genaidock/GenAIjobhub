@@ -3,13 +3,19 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
+import { COUNTRIES } from '@/lib/countries';
 
 type ProfileFormProps = {
   initialData: {
     full_name: string | null;
     company_name: string | null;
     linkedin_url: string | null;
-    github_url: string | null;
+    company_domain: string | null;
+    employee_range: string | null;
+    city: string | null;
+    state: string | null;
+    country: string | null;
+    pincode: string | null;
     phone: string | null;
     user_type: string | null;
     email: string | null;
@@ -23,7 +29,12 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
     full_name: initialData.full_name || '',
     company_name: initialData.company_name || '',
     linkedin_url: initialData.linkedin_url || '',
-    github_url: initialData.github_url || '',
+    company_domain: initialData.company_domain || '',
+    employee_range: initialData.employee_range || '',
+    city: initialData.city || '',
+    state: initialData.state || '',
+    country: initialData.country || 'India',
+    pincode: initialData.pincode || '',
     phone: initialData.phone || '',
   });
 
@@ -37,7 +48,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
@@ -55,7 +66,12 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
           full_name: formData.full_name,
           company_name: formData.company_name,
           linkedin_url: formData.linkedin_url,
-          github_url: formData.github_url,
+          company_domain: formData.company_domain,
+          employee_range: formData.employee_range,
+          city: formData.city,
+          state: formData.state,
+          country: formData.country,
+          pincode: formData.pincode,
           phone: formData.phone,
         }),
       });
@@ -171,17 +187,83 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1">GitHub URL</label>
-            <input
-              type="url"
-              name="github_url"
-              value={formData.github_url}
-              onChange={handleChange}
-              placeholder="https://github.com/..."
-              className="w-full px-4 py-2.5 rounded-lg border border-border bg-background text-text-primary focus:outline-none focus:border-accent-primary focus:ring-1 focus:ring-accent-primary transition-all"
-            />
-          </div>
+          {initialData.user_type === 'employer' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1">Company Domain</label>
+                <input
+                  type="text"
+                  name="company_domain"
+                  value={formData.company_domain}
+                  onChange={handleChange}
+                  placeholder="example.com"
+                  className="w-full px-4 py-2.5 rounded-lg border border-border bg-background text-text-primary focus:outline-none focus:border-accent-primary focus:ring-1 focus:ring-accent-primary transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1">Employees</label>
+                <select
+                  name="employee_range"
+                  value={formData.employee_range}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2.5 rounded-lg border border-border bg-background text-text-primary focus:outline-none focus:border-accent-primary focus:ring-1 focus:ring-accent-primary transition-all"
+                >
+                  <option value="" disabled>Select range</option>
+                  <option value="1-10">1-10</option>
+                  <option value="11-50">11-50</option>
+                  <option value="51-200">51-200</option>
+                  <option value="201-500">201-500</option>
+                  <option value="500+">500+</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1">Country</label>
+                <select
+                  name="country"
+                  value={formData.country}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2.5 rounded-lg border border-border bg-background text-text-primary focus:outline-none focus:border-accent-primary focus:ring-1 focus:ring-accent-primary transition-all"
+                >
+                  {COUNTRIES.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1">Pincode/Zip</label>
+                <input
+                  type="text"
+                  name="pincode"
+                  value={formData.pincode}
+                  onChange={handleChange}
+                  placeholder="100001"
+                  className="w-full px-4 py-2.5 rounded-lg border border-border bg-background text-text-primary focus:outline-none focus:border-accent-primary focus:ring-1 focus:ring-accent-primary transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1">City</label>
+                <input
+                  type="text"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleChange}
+                  placeholder="City"
+                  className="w-full px-4 py-2.5 rounded-lg border border-border bg-background text-text-primary focus:outline-none focus:border-accent-primary focus:ring-1 focus:ring-accent-primary transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-1">State</label>
+                <input
+                  type="text"
+                  name="state"
+                  value={formData.state}
+                  onChange={handleChange}
+                  placeholder="State"
+                  className="w-full px-4 py-2.5 rounded-lg border border-border bg-background text-text-primary focus:outline-none focus:border-accent-primary focus:ring-1 focus:ring-accent-primary transition-all"
+                />
+              </div>
+            </>
+          )}
         </div>
 
         <div className="pt-4 flex justify-end">

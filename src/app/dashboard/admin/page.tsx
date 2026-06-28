@@ -13,7 +13,8 @@ import {
   Clock, 
   ExternalLink,
   ChevronDown,
-  Building
+  Building,
+  Users
 } from 'lucide-react';
 
 const ADMIN_EMAIL = 'admin@genaijobhub.com';
@@ -27,6 +28,11 @@ function AdminDashboardContent() {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [actionJobId, setActionJobId] = useState<string | null>(null);
+
+  const [activeTab, setActiveTab] = useState<'jobs' | 'employers'>('jobs');
+  const [pendingEmployers, setPendingEmployers] = useState<any[]>([]);
+  const [isLoadingEmployers, setIsLoadingEmployers] = useState(true);
+  const [actionEmployerId, setActionEmployerId] = useState<string | null>(null);
 
   // Expanded card state to view descriptions
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
@@ -62,11 +68,62 @@ function AdminDashboardContent() {
     }
   };
 
+  const fetchPendingEmployers = async () => {
+    if (!user || !session) return;
+    setIsLoadingEmployers(true);
+    setError('');
+    try {
+      const res = await fetch('/api/admin/employers', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to fetch pending employers');
+      setPendingEmployers(data.employers || []);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoadingEmployers(false);
+    }
+  };
+
   useEffect(() => {
     if (user && session && user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
       fetchPendingJobs();
+      fetchPendingEmployers();
     }
   }, [user, session]);
+
+  const handleVerifyEmployer = async (employerId: string) => {
+    if (!session) return;
+    setActionEmployerId(employerId);
+    setError('');
+    setSuccessMsg('');
+
+    try {
+      const res = await fetch('/api/admin/verify-employer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ employerId })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `Failed to verify employer`);
+
+      setSuccessMsg(`Employer successfully verified!`);
+      setPendingEmployers(prev => prev.filter(emp => emp.id !== employerId));
+
+      setTimeout(() => setSuccessMsg(''), 3000);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setActionEmployerId(null);
+    }
+  };
 
   const handleModerate = async (jobId: string, action: 'approve' | 'reject') => {
     if (!session) return;
@@ -126,15 +183,39 @@ function AdminDashboardContent() {
             </p>
           </div>
           <button 
-            onClick={fetchPendingJobs}
+            onClick={() => { fetchPendingJobs(); fetchPendingEmployers(); }}
             className="px-4 py-2.5 rounded-xl border border-white/10 hover:bg-white/5 transition-all text-xs text-text-primary font-bold flex items-center gap-2"
           >
-            <RefreshCw className="w-3.5 h-3.5" /> Refresh List
+            <RefreshCw className="w-3.5 h-3.5" /> Refresh Lists
           </button>
         </div>
       </section>
 
       <div className="section-transition-dark-to-light w-full" />
+
+      {/* Tabs */}
+      <div className="w-full bg-white border-b border-border-light sticky top-16 z-20">
+        <div className="max-w-[800px] mx-auto w-full px-[5%] flex gap-6">
+          <button
+            onClick={() => setActiveTab('jobs')}
+            className={`py-4 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'jobs' ? 'border-accent-primary text-accent-primary' : 'border-transparent text-text-dark-secondary hover:text-text-dark'}`}
+          >
+            <Briefcase className="w-4 h-4" /> Pending Jobs
+            {pendingJobs.length > 0 && (
+              <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-xs">{pendingJobs.length}</span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('employers')}
+            className={`py-4 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'employers' ? 'border-accent-primary text-accent-primary' : 'border-transparent text-text-dark-secondary hover:text-text-dark'}`}
+          >
+            <Users className="w-4 h-4" /> Pending Employers
+            {pendingEmployers.length > 0 && (
+              <span className="bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full text-xs">{pendingEmployers.length}</span>
+            )}
+          </button>
+        </div>
+      </div>
 
       {/* Main Content Area */}
       <section className="section-light w-full py-12 px-[5%]">
@@ -151,7 +232,7 @@ function AdminDashboardContent() {
             </div>
           )}
 
-          {isLoadingJobs ? (
+          {activeTab === 'jobs' && (isLoadingJobs ? (
             <div className="flex flex-col items-center justify-center py-20">
               <RefreshCw className="w-8 h-8 text-red-500 animate-spin mb-4" />
               <p className="text-text-dark-secondary text-sm font-medium">Loading pending job listings...</p>
@@ -262,7 +343,82 @@ function AdminDashboardContent() {
                 );
               })}
             </div>
-          )}
+          ))}
+
+          {activeTab === 'employers' && (isLoadingEmployers ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <RefreshCw className="w-8 h-8 text-amber-500 animate-spin mb-4" />
+              <p className="text-text-dark-secondary text-sm font-medium">Loading pending employers...</p>
+            </div>
+          ) : pendingEmployers.length === 0 ? (
+            <div className="text-center py-20 card-light p-10 max-w-md mx-auto">
+              <div className="text-6xl mb-6">✅</div>
+              <h2 className="text-2xl font-bold text-text-dark mb-3">All Clear!</h2>
+              <p className="text-text-dark-secondary text-sm">
+                No employers currently pending verification.
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-5">
+              <h2 className="font-bold text-text-dark text-lg px-2">
+                Pending Employers ({pendingEmployers.length})
+              </h2>
+
+              {pendingEmployers.map((emp) => {
+                const joinedDate = new Date(emp.created_at).toLocaleDateString('en-US', {
+                  month: 'short', day: 'numeric', year: 'numeric'
+                });
+
+                return (
+                  <div 
+                    key={emp.id} 
+                    className="card-light overflow-hidden transition-all duration-200 hover:border-amber-500/20"
+                  >
+                    <div className="p-6 md:p-8">
+                      <div className="flex justify-between items-start gap-4">
+                        <div>
+                          <h3 className="text-xl font-bold text-text-dark mb-2">{emp.company_name}</h3>
+                          <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-text-dark-secondary font-medium">
+                            <span className="flex items-center gap-1 font-bold text-text-dark">
+                              👤 {emp.full_name}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              ✉️ {emp.email}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              🌐 {emp.company_domain}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              👥 {emp.employee_range} employees
+                            </span>
+                            <span className="flex items-center gap-1">
+                              📍 {emp.city}, {emp.state}, {emp.country}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5" /> Joined {joinedDate}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="px-2.5 py-1 text-[10px] font-bold uppercase rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20 whitespace-nowrap">
+                          Unverified
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row justify-end items-stretch sm:items-center gap-4 mt-6 pt-6 border-t border-border-light">
+                        <button
+                          disabled={actionEmployerId !== null}
+                          onClick={() => handleVerifyEmployer(emp.id)}
+                          className="px-4 py-2 rounded-xl bg-accent-primary hover:bg-accent-secondary text-white font-bold text-xs flex items-center gap-1.5 transition-all disabled:opacity-50 shadow-sm"
+                        >
+                          <Check className="w-4 h-4" /> Verify Employer
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
         </div>
       </section>
     </div>

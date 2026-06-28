@@ -54,13 +54,20 @@ export async function POST(req: Request) {
     // Verify user is an employer
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('user_type, job_credits_remaining')
+      .select('user_type, job_credits_remaining, is_verified')
       .eq('id', user.id)
       .single();
 
     if (profileError || !['employer', 'admin'].includes(profileData?.user_type)) {
       return NextResponse.json(
         { error: 'Forbidden: Only employers can post jobs.' },
+        { status: 403 }
+      );
+    }
+
+    if (profileData?.is_verified === false) {
+      return NextResponse.json(
+        { error: 'Forbidden: Your account is pending admin verification.' },
         { status: 403 }
       );
     }

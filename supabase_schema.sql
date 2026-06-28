@@ -11,7 +11,14 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     user_type TEXT,
     full_name TEXT,
     company_name TEXT,
-    linkedin_url TEXT
+    linkedin_url TEXT,
+    is_verified BOOLEAN DEFAULT false,
+    company_domain TEXT,
+    employee_range TEXT,
+    city TEXT,
+    state TEXT,
+    country TEXT,
+    pincode TEXT
 );
 
 -- Enable Row Level Security (RLS)
@@ -34,7 +41,14 @@ BEGIN
     user_type,
     full_name,
     company_name,
-    linkedin_url
+    linkedin_url,
+    is_verified,
+    company_domain,
+    employee_range,
+    city,
+    state,
+    country,
+    pincode
   )
   VALUES (
     new.id, 
@@ -44,7 +58,14 @@ BEGIN
     new.raw_user_meta_data->>'user_type',
     new.raw_user_meta_data->>'full_name',
     new.raw_user_meta_data->>'company_name',
-    new.raw_user_meta_data->>'linkedin_url'
+    new.raw_user_meta_data->>'linkedin_url',
+    false,
+    new.raw_user_meta_data->>'company_domain',
+    new.raw_user_meta_data->>'employee_range',
+    new.raw_user_meta_data->>'city',
+    new.raw_user_meta_data->>'state',
+    new.raw_user_meta_data->>'country',
+    new.raw_user_meta_data->>'pincode'
   );
   RETURN new;
 END;

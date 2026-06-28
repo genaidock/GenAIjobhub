@@ -3,7 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { createAdminClient } from '@/lib/supabase';
 
-export async function PUT(req: Request) {
+export async function POST(req: Request) {
   try {
     const cookieStore = await cookies();
     const supabaseServer = createServerClient(
@@ -25,32 +25,27 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const payload = await req.json();
-    const { full_name, company_name, linkedin_url, phone, company_domain, employee_range, city, state, country, pincode } = payload;
+    if (user.email?.toLowerCase() !== 'admin@genaijobhub.com') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
-    const updateData: Record<string, any> = {};
-    if (full_name !== undefined) updateData.full_name = full_name;
-    if (company_name !== undefined) updateData.company_name = company_name;
-    if (linkedin_url !== undefined) updateData.linkedin_url = linkedin_url;
-    if (phone !== undefined) updateData.phone = phone;
-    if (company_domain !== undefined) updateData.company_domain = company_domain;
-    if (employee_range !== undefined) updateData.employee_range = employee_range;
-    if (city !== undefined) updateData.city = city;
-    if (state !== undefined) updateData.state = state;
-    if (country !== undefined) updateData.country = country;
-    if (pincode !== undefined) updateData.pincode = pincode;
+    const { employerId } = await req.json();
+
+    if (!employerId) {
+      return NextResponse.json({ error: 'Employer ID is required' }, { status: 400 });
+    }
 
     const adminClient = createAdminClient();
     const { error: updateError } = await adminClient
       .from('profiles')
-      .update(updateData)
-      .eq('id', user.id);
+      .update({ is_verified: true })
+      .eq('id', employerId);
 
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ message: 'Profile updated successfully' }, { status: 200 });
+    return NextResponse.json({ message: 'Employer verified successfully' }, { status: 200 });
 
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'An error occurred';

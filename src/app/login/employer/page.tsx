@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { ArrowLeft, Briefcase, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Turnstile } from '@marsidev/react-turnstile';
+import { COUNTRIES } from '@/lib/countries';
+import { FREE_EMAIL_DOMAINS } from '@/lib/free-domains';
 
 type Mode = 'login' | 'signup' | 'otp';
 
@@ -27,10 +29,46 @@ function EmployerAuthContent() {
     company_name: '',
     email: '',
     password: '',
+    company_domain: '',
+    employee_range: '',
+    country: 'India',
+    pincode: '',
+    city: '',
+    state: ''
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handlePincodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setForm(prev => ({ ...prev, pincode: val }));
+    
+    if (form.country === 'India' && val.length === 6) {
+      try {
+        const res = await fetch(`https://api.postalpincode.in/pincode/${val}`);
+        const data = await res.json();
+        if (data && data[0] && data[0].Status === 'Success') {
+          const postOffice = data[0].PostOffice[0];
+          setForm(prev => ({ ...prev, city: postOffice.District, state: postOffice.State }));
+        }
+      } catch (err) {
+        console.error('Error fetching pincode:', err);
+      }
+    } else if (['United States', 'United Kingdom', 'Canada', 'Australia'].includes(form.country) && val.length >= 4) {
+      try {
+        const countryCode = form.country === 'United States' ? 'us' : form.country === 'United Kingdom' ? 'gb' : form.country === 'Canada' ? 'ca' : 'au';
+        const res = await fetch(`https://api.zippopotam.us/${countryCode}/${val}`);
+        if (res.ok) {
+          const data = await res.json();
+          const place = data.places[0];
+          setForm(prev => ({ ...prev, city: place['place name'], state: place['state'] }));
+        }
+      } catch (err) {
+        console.error('Error fetching zipcode:', err);
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,8 +85,16 @@ function EmployerAuthContent() {
 
     try {
       if (mode === 'signup') {
+        const emailDomain = form.email.split('@')[1]?.toLowerCase();
+        if (FREE_EMAIL_DOMAINS.includes(emailDomain)) {
+          throw new Error('Please use your official corporate email. Free providers are not allowed. If you are an official employee of this provider, please contact support@genaijobhub.com.');
+        }
+
         if (!form.full_name.trim()) throw new Error('Please enter your full name.');
         if (!form.company_name.trim()) throw new Error('Please enter your company name.');
+        if (!form.company_domain.trim()) throw new Error('Please enter your company domain.');
+        if (!form.employee_range) throw new Error('Please select number of employees.');
+        if (!form.city.trim() || !form.state.trim() || !form.pincode.trim()) throw new Error('Please complete the location details.');
         if (form.password.length < 8) throw new Error('Password must be at least 8 characters.');
 
         const { error } = await supabase.auth.signUp({
@@ -59,6 +105,12 @@ function EmployerAuthContent() {
               user_type: 'employer',
               full_name: form.full_name.trim(),
               company_name: form.company_name.trim(),
+              company_domain: form.company_domain.trim(),
+              employee_range: form.employee_range,
+              city: form.city.trim(),
+              state: form.state.trim(),
+              country: form.country,
+              pincode: form.pincode.trim()
             },
           },
         });
@@ -169,6 +221,91 @@ function EmployerAuthContent() {
                   placeholder="Anthropic, OpenAI, Acme Corp..."
                   className="w-full p-3 bg-background border border-border rounded-xl text-white focus:outline-none focus:border-accent-primary transition-colors"
                 />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-text-secondary mb-2">Company Domain *</label>
+                  <input
+                    type="text"
+                    name="company_domain"
+                    value={form.company_domain}
+                    onChange={handleChange}
+                    required
+                    placeholder="example.com"
+                    className="w-full p-3 bg-background border border-border rounded-xl text-white focus:outline-none focus:border-accent-primary transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-text-secondary mb-2">Employees *</label>
+                  <select
+                    name="employee_range"
+                    value={form.employee_range}
+                    onChange={handleChange}
+                    required
+                    className="w-full p-3 bg-background border border-border rounded-xl text-white focus:outline-none focus:border-accent-primary transition-colors"
+                  >
+                    <option value="" disabled>Select range</option>
+                    <option value="1-10">1-10</option>
+                    <option value="11-50">11-50</option>
+                    <option value="51-200">51-200</option>
+                    <option value="201-500">201-500</option>
+                    <option value="500+">500+</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-text-secondary mb-2">Country *</label>
+                  <select
+                    name="country"
+                    value={form.country}
+                    onChange={handleChange}
+                    required
+                    className="w-full p-3 bg-background border border-border rounded-xl text-white focus:outline-none focus:border-accent-primary transition-colors"
+                  >
+                    {COUNTRIES.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-text-secondary mb-2">Pincode/Zip *</label>
+                  <input
+                    type="text"
+                    name="pincode"
+                    value={form.pincode}
+                    onChange={handlePincodeChange}
+                    required
+                    placeholder="100001"
+                    className="w-full p-3 bg-background border border-border rounded-xl text-white focus:outline-none focus:border-accent-primary transition-colors"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-text-secondary mb-2">City *</label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={form.city}
+                    onChange={handleChange}
+                    required
+                    placeholder="New Delhi"
+                    className="w-full p-3 bg-background border border-border rounded-xl text-white focus:outline-none focus:border-accent-primary transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-text-secondary mb-2">State *</label>
+                  <input
+                    type="text"
+                    name="state"
+                    value={form.state}
+                    onChange={handleChange}
+                    required
+                    placeholder="Delhi"
+                    className="w-full p-3 bg-background border border-border rounded-xl text-white focus:outline-none focus:border-accent-primary transition-colors"
+                  />
+                </div>
               </div>
             </>
           )}

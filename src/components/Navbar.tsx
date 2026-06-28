@@ -147,9 +147,6 @@ export default function Navbar() {
             <Link href="/login" className="px-5 py-2.5 rounded-lg font-semibold text-sm text-text-primary border border-white/10 hover:bg-white/5 hover:border-white/20 transition-all">
               Log In
             </Link>
-            <Link href="/login/employer" className="px-5 py-2.5 rounded-lg font-semibold text-sm text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-0.5 shadow-[0_4px_15px_rgba(109,40,217,0.35)] hover:shadow-[0_6px_20px_rgba(109,40,217,0.45)] transition-all">
-              Post a Job
-            </Link>
           </>
         )}
       </div>
@@ -196,7 +193,6 @@ export default function Navbar() {
           ) : (
             <>
               <Link href="/login" className="font-medium text-text-secondary hover:text-text-primary">Log In</Link>
-              <a href="/login/employer" className="font-medium text-accent-primary">Post a Job</a>
             </>
           )}
         </div>

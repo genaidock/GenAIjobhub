@@ -64,6 +64,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       if (!profile || profile.user_type !== 'admin') {
         return NextResponse.json({ error: 'Forbidden: You can only edit your own jobs.' }, { status: 403 });
       }
+    } else {
+      // If it is the employer, check if they are verified
+      const { data: profile } = await supabase.from('profiles').select('is_verified').eq('id', user.id).single();
+      if (profile?.is_verified === false) {
+        return NextResponse.json({ error: 'Forbidden: Your account is pending admin verification.' }, { status: 403 });
+      }
     }
 
     // Update the job in the database
