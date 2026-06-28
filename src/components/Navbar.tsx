@@ -49,8 +49,8 @@ export default function Navbar() {
     <nav className="navbar-glow flex justify-between items-center py-4 px-[5%] bg-background/80 backdrop-blur-xl sticky top-0 z-50">
       {/* Logo */}
       <Link href="/" className="text-2xl font-extrabold text-text-primary flex items-center gap-2.5 tracking-tight">
-        <div className="w-8 h-8 relative flex-shrink-0">
-          <Image src="/logo.png" alt="GenAIJobHub Logo" fill sizes="32px" className="object-contain" />
+        <div className="w-10 h-10 md:w-12 md:h-12 relative flex-shrink-0">
+          <Image src="/logo.png" alt="GenAIJobHub Logo" fill sizes="48px" className="object-contain" />
         </div>
         GenAI<span className="text-accent-primary">JobHub</span>
       </Link>

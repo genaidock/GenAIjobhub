@@ -10,8 +10,8 @@ export default function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-1">
             <div className="text-2xl font-extrabold text-text-primary mb-4 flex items-center gap-2">
-              <div className="w-6 h-6 relative flex-shrink-0">
-                <Image src="/logo.png" alt="GenAIJobHub Logo" fill sizes="24px" className="object-contain" />
+              <div className="w-8 h-8 relative flex-shrink-0">
+                <Image src="/logo.png" alt="GenAIJobHub Logo" fill sizes="32px" className="object-contain" />
               </div>
               GenAI<span className="text-accent-primary">JobHub</span>
             </div>
