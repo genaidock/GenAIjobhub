@@ -9,6 +9,7 @@ ADD COLUMN IF NOT EXISTS salary_range TEXT;
 ALTER TABLE public.jobs DROP COLUMN IF EXISTS salary;
 
 -- Make employer_id nullable temporarily so our seed script can run without failing
+ALTER TABLE public.jobs ADD COLUMN IF NOT EXISTS employer_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE;
 ALTER TABLE public.jobs ALTER COLUMN employer_id DROP NOT NULL;
 
 -- Add columns for job expiration and API sync features
