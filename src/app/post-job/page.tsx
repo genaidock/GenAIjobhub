@@ -541,6 +541,14 @@ function PostJobContent() {
 }
 
 export default function PostJob() {
-  return <PostJobContent />;
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[70vh]">
+        <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <PostJobContent />
+    </Suspense>
+  );
 }
 
