@@ -70,23 +70,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, fetchProfile]);
 
   useEffect(() => {
+    let mounted = true;
+
+    // Explicitly get the session on mount to prevent infinite loading if INITIAL_SESSION is missed
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!mounted) return;
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        const p = await fetchProfile(session.user.id);
+        if (mounted) setProfile(p);
+      }
+      if (mounted) setIsLoading(false);
+    });
+
     // Listen to auth state changes (which includes INITIAL_SESSION in v2)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
           const p = await fetchProfile(session.user.id);
-          setProfile(p);
+          if (mounted) setProfile(p);
         } else {
-          setProfile(null);
+          if (mounted) setProfile(null);
         }
-        setIsLoading(false);
+        if (mounted) setIsLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [fetchProfile]);
 
   const signOut = async () => {
