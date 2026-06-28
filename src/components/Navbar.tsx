@@ -37,16 +37,8 @@ export default function Navbar() {
     : profile?.email?.[0]?.toUpperCase() ?? '?';
 
   let displayName = 'Job Seeker';
-  if (userType === 'employer') {
-    displayName = profile?.company_name || profile?.full_name || 'Employer';
-  } else if (userType === 'admin') {
-    displayName = 'Admin';
-  } else {
-    displayName = profile?.full_name || 'Job Seeker';
-  }
-
   return (
-    <nav className="navbar-glow flex justify-between items-center py-4 px-[5%] bg-background/80 backdrop-blur-xl sticky top-0 z-50">
+    <nav className="w-full flex items-center justify-between py-4 px-6 md:px-[5%] bg-background border-b border-white/10 relative z-50">
       {/* Logo */}
       <Link href="/" className="text-2xl font-extrabold text-text-primary flex items-center gap-2.5 tracking-tight">
         <div className="w-10 h-10 md:w-12 md:h-12 relative flex-shrink-0">
@@ -62,10 +54,6 @@ export default function Navbar() {
         <Link href="/freelance" className="font-medium text-text-secondary hover:text-text-primary transition-colors text-[0.925rem]">Freelance</Link>
         <Link href="/news" className="font-medium text-text-secondary hover:text-text-primary transition-colors text-[0.925rem]">AI News</Link>
         <Link href="/tools" className="font-medium text-text-secondary hover:text-text-primary transition-colors text-[0.925rem]">Tools</Link>
-        {/* AI Coach postponed for post-launch */}
-        {/* {(!user || userType === 'seeker') && (
-          <Link href="/coach" className="font-medium text-text-secondary hover:text-text-primary transition-colors text-[0.925rem]">AI Coach</Link>
-        )} */}
       </div>
 
       {/* Desktop Auth Area */}
@@ -76,12 +64,12 @@ export default function Navbar() {
           <>
             {/* Role-specific primary CTA */}
             {userType === 'employer' ? (
-              <Link
+              <a
                 href="/post-job"
                 className="px-5 py-2.5 rounded-lg font-semibold text-sm text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-0.5 shadow-[0_4px_15px_rgba(109,40,217,0.35)] transition-all"
               >
                 Post a Job
-              </Link>
+              </a>
             ) : userType === 'seeker' ? (
               <Link
                 href="/jobs"
@@ -118,40 +106,37 @@ export default function Navbar() {
                   </div>
 
                   {/* Role-specific menu items */}
-                  <Link href="/profile" onClick={() => setTimeout(() => setIsUserMenuOpen(false), 150)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
+                  <Link href="/profile" className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
                     <FileText className="w-4 h-4" /> My Profile
                   </Link>
                   {userType === 'employer' ? (
                     <>
-                      <Link href="/post-job" onClick={() => setTimeout(() => setIsUserMenuOpen(false), 150)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
+                      <a href="/post-job" className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
                         <FileText className="w-4 h-4" /> Post a Job
-                      </Link>
-                      <Link href="/dashboard/employer" onClick={() => setTimeout(() => setIsUserMenuOpen(false), 150)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
+                      </a>
+                      <a href="/dashboard/employer" className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
                         <LayoutDashboard className="w-4 h-4" /> My Listings
-                      </Link>
+                      </a>
                     </>
                   ) : userType === 'admin' ? (
                     <>
-                      <Link href="/dashboard/admin" onClick={() => setTimeout(() => setIsUserMenuOpen(false), 150)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
+                      <Link href="/dashboard/admin" className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
                         <LayoutDashboard className="w-4 h-4" /> Admin Console
                       </Link>
                     </>
                   ) : (
                     <>
-                      <Link href="/jobs" onClick={() => setTimeout(() => setIsUserMenuOpen(false), 150)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
+                      <Link href="/jobs" className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
                         <LayoutDashboard className="w-4 h-4" /> Browse Jobs
                       </Link>
-                      <Link href="/applications" onClick={() => setTimeout(() => setIsUserMenuOpen(false), 150)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
+                      <Link href="/applications" className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
                         <FileText className="w-4 h-4" /> My Applications
                       </Link>
                     </>
                   )}
-
-                  <div className="border-t border-border">
-                    <button onClick={handleSignOut} className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-400 hover:bg-red-400/5 transition-colors">
-                      <LogOut className="w-4 h-4" /> Sign Out
-                    </button>
-                  </div>
+                  <button onClick={handleSignOut} className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors border-t border-border mt-1">
+                    <LogOut className="w-4 h-4" /> Sign Out
+                  </button>
                 </div>
               )}
             </div>
