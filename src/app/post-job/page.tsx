@@ -29,18 +29,19 @@ function PostJobContent() {
   const [isPurchasingPackage, setIsPurchasingPackage] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [upgradeCompany, setUpgradeCompany] = useState('');
-  const { user, userType, session, isLoading: authLoading } = useAuth();
+  const { user, userType, session, isLoading: authLoading, refreshProfile } = useAuth();
+  const [profileRefreshed, setProfileRefreshed] = useState(false);
 
-  // Employer-only guard — only redirect once auth has fully resolved
+  // Force-refresh profile on mount to get latest user_type from DB.
+  // This fixes the race condition where AuthProvider fetched the profile
+  // BEFORE our OAuth callback had time to update user_type = 'employer'.
   useEffect(() => {
-    if (!authLoading) {
-      if (!user) {
-        router.replace('/login/employer?redirect=/post-job');
-      }
-      // Only redirect away if userType is explicitly a non-employer value (not null/loading)
-      // 'seeker' with no employer access gets handled later with the upgrade UI
+    if (!authLoading && user && !profileRefreshed) {
+      refreshProfile().then(() => setProfileRefreshed(true));
+    } else if (!authLoading && !user) {
+      router.replace('/login/employer?redirect=/post-job');
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, refreshProfile, profileRefreshed, router]);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -93,7 +94,8 @@ function PostJobContent() {
     }
   }, [user, searchParams]);
 
-  if (authLoading || !user) {
+  // Show spinner while auth loads OR while we're waiting for the profile refresh
+  if (authLoading || !user || !profileRefreshed) {
     return (
       <div className="flex items-center justify-center min-h-[70vh]">
         <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
