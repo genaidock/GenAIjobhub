@@ -93,10 +93,24 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
     notFound();
   }
 
-  // Always get current user to determine ownership/permissions
+  // Always get current user to determine ownership/permissions and application status
   const { data: { user } } = await supabaseServer.auth.getUser();
   const isOwner = user && user.id === job.employer_id;
   const isAdmin = user && user.email?.toLowerCase() === 'admin@genaijobhub.com';
+
+  let hasApplied = false;
+  if (user && !isOwner && !isAdmin) {
+    const { data: existingApp } = await supabaseServer
+      .from('applications')
+      .select('id')
+      .eq('job_id', job.id)
+      .eq('seeker_id', user.id)
+      .single();
+    
+    if (existingApp) {
+      hasApplied = true;
+    }
+  }
 
   // Security gate: if job is not approved, verify user is owner or admin
   const isPending = job.moderation_status === 'pending';
@@ -263,7 +277,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                 </>
               ) : (
                 <>
-                  <QuickApplyButton />
+                  <QuickApplyButton jobId={job.id} initialHasApplied={hasApplied} />
                   <p className="text-xs text-text-dark-tertiary">Apply easily with your GenAIJobHub profile.</p>
                 </>
               )}
