@@ -87,6 +87,8 @@ function PostJobContent() {
     }
   }, [user, searchParams]);
 
+  const [isFeatured, setIsFeatured] = useState(false);
+
   // Show spinner only while auth is loading
   if (authLoading || !user) {
     return (
@@ -108,8 +110,6 @@ function PostJobContent() {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
-
-  const [isFeatured, setIsFeatured] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
