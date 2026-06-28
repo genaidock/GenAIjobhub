@@ -126,12 +126,12 @@ export default function Navbar() {
                     </>
                   ) : (
                     <>
-                      <Link href="/jobs" className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
+                      <a href="/jobs" className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
                         <LayoutDashboard className="w-4 h-4" /> Browse Jobs
-                      </Link>
-                      <Link href="/applications" className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
+                      </a>
+                      <a href="/applications" className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors">
                         <FileText className="w-4 h-4" /> My Applications
-                      </Link>
+                      </a>
                     </>
                   )}
                   <button onClick={handleSignOut} className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors border-t border-border mt-1">
@@ -164,11 +164,11 @@ export default function Navbar() {
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="absolute top-full left-0 w-full bg-background border-b border-white/10 flex flex-col p-5 gap-4 md:hidden z-40">
-          <Link href="/jobs" onClick={() => setTimeout(() => setIsMenuOpen(false), 150)} className="font-medium text-text-secondary hover:text-text-primary">Jobs Board</Link>
-          <Link href="/forum" onClick={() => setTimeout(() => setIsMenuOpen(false), 150)} className="font-medium text-text-secondary hover:text-text-primary">Forum</Link>
-          <Link href="/freelance" onClick={() => setTimeout(() => setIsMenuOpen(false), 150)} className="font-medium text-text-secondary hover:text-text-primary">Freelance</Link>
-          <Link href="/news" onClick={() => setTimeout(() => setIsMenuOpen(false), 150)} className="font-medium text-text-secondary hover:text-text-primary">AI News</Link>
-          <Link href="/tools" onClick={() => setTimeout(() => setIsMenuOpen(false), 150)} className="font-medium text-text-secondary hover:text-text-primary">Tools</Link>
+          <Link href="/jobs" className="font-medium text-text-secondary hover:text-text-primary">Jobs Board</Link>
+          <Link href="/forum" className="font-medium text-text-secondary hover:text-text-primary">Forum</Link>
+          <Link href="/freelance" className="font-medium text-text-secondary hover:text-text-primary">Freelance</Link>
+          <Link href="/news" className="font-medium text-text-secondary hover:text-text-primary">AI News</Link>
+          <Link href="/tools" className="font-medium text-text-secondary hover:text-text-primary">Tools</Link>
           <hr className="border-white/10" />
           {user && profile ? (
             <>
@@ -178,25 +178,25 @@ export default function Navbar() {
               </p>
               {userType === 'employer' ? (
                 <>
-                  <Link href="/post-job" onClick={() => setTimeout(() => setIsMenuOpen(false), 150)} className="font-medium text-accent-primary">Post a Job</Link>
-                  <Link href="/dashboard/employer" onClick={() => setTimeout(() => setIsMenuOpen(false), 150)} className="font-medium text-text-secondary hover:text-text-primary">My Listings</Link>
+                  <a href="/post-job" className="font-medium text-accent-primary">Post a Job</a>
+                  <a href="/dashboard/employer" className="font-medium text-text-secondary hover:text-text-primary">My Listings</a>
                 </>
               ) : userType === 'admin' ? (
                 <>
-                  <Link href="/dashboard/admin" onClick={() => setTimeout(() => setIsMenuOpen(false), 150)} className="font-medium text-accent-secondary">Admin Console</Link>
+                  <Link href="/dashboard/admin" className="font-medium text-accent-secondary">Admin Console</Link>
                 </>
               ) : (
                 <>
-                  <Link href="/jobs" onClick={() => setTimeout(() => setIsMenuOpen(false), 150)} className="font-medium text-accent-secondary">Browse Jobs</Link>
-                  <Link href="/applications" onClick={() => setTimeout(() => setIsMenuOpen(false), 150)} className="font-medium text-text-secondary hover:text-text-primary">My Applications</Link>
+                  <a href="/jobs" className="font-medium text-accent-secondary">Browse Jobs</a>
+                  <a href="/applications" className="font-medium text-text-secondary hover:text-text-primary">My Applications</a>
                 </>
               )}
               <button onClick={handleSignOut} className="font-medium text-red-400 text-left">Sign Out</button>
             </>
           ) : (
             <>
-              <Link href="/login" onClick={() => setTimeout(() => setIsMenuOpen(false), 150)} className="font-medium text-text-secondary hover:text-text-primary">Log In</Link>
-              <Link href="/login/employer" onClick={() => setTimeout(() => setIsMenuOpen(false), 150)} className="font-medium text-accent-primary">Post a Job</Link>
+              <Link href="/login" className="font-medium text-text-secondary hover:text-text-primary">Log In</Link>
+              <a href="/login/employer" className="font-medium text-accent-primary">Post a Job</a>
             </>
           )}
         </div>
