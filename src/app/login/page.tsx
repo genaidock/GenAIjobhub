@@ -13,14 +13,15 @@ function LoginContent() {
   const redirectTo = searchParams.get('redirect') ?? '';
 
   // If already logged in, redirect to appropriate dashboard
+  // Wait for both user AND profile to be loaded to avoid race conditions
   useEffect(() => {
     if (!isLoading && user && profile) {
+      const destination = redirectTo || (profile.user_type === 'employer' ? '/dashboard/employer' : '/jobs');
+      router.replace(destination);
+    } else if (!isLoading && user && !profile) {
+      // User exists but profile not yet synced — redirect to post-job directly
       if (redirectTo) {
         router.replace(redirectTo);
-      } else if (profile.user_type === 'employer') {
-        router.replace('/post-job');
-      } else {
-        router.replace('/jobs');
       }
     }
   }, [user, profile, isLoading, router, redirectTo]);
@@ -33,7 +34,14 @@ function LoginContent() {
     );
   }
 
-  if (user) return null; // Will redirect via useEffect
+  if (user) {
+    // Show spinner while the useEffect redirect processes
+    return (
+      <div className="flex items-center justify-center min-h-[70vh]">
+        <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   const employerHref = redirectTo
     ? `/login/employer?redirect=${encodeURIComponent(redirectTo)}`
