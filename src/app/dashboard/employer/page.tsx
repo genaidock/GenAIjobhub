@@ -31,6 +31,13 @@ function EmployerDashboardContent() {
   const [extensionSuccessMsg, setExtensionSuccessMsg] = useState('');
   const [extensionErrorMsg, setExtensionErrorMsg] = useState('');
 
+  // Close Job Modal State
+  const [closingJob, setClosingJob] = useState<any | null>(null);
+  const [closeReason, setCloseReason] = useState('Role filled internally');
+  const [isSubmittingClose, setIsSubmittingClose] = useState(false);
+  const [closeSuccessMsg, setCloseSuccessMsg] = useState('');
+  const [closeErrorMsg, setCloseErrorMsg] = useState('');
+
   // Employer guard
   useEffect(() => {
     if (!authLoading) {
@@ -79,7 +86,17 @@ function EmployerDashboardContent() {
   }
 
   // Helper to determine status details
-  const getJobStatus = (expiresAtStr: string | null, moderationStatus: string | null) => {
+  const getJobStatus = (expiresAtStr: string | null, moderationStatus: string | null, status?: string) => {
+    if (status === 'closed') {
+      return { 
+        label: 'Closed', 
+        color: 'bg-slate-500/10 text-slate-500 border-slate-500/20', 
+        extendable: false,
+        daysRemaining: null,
+        isExpired: false
+      };
+    }
+    
     // 1. Check moderation status first
     if (moderationStatus === 'pending') {
       return { 
@@ -189,6 +206,45 @@ function EmployerDashboardContent() {
     }
   };
 
+  // Submit Close Job Handler
+  const handleCloseSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!closingJob) return;
+
+    setIsSubmittingClose(true);
+    setCloseErrorMsg('');
+    setCloseSuccessMsg('');
+
+    try {
+      const res = await fetch(`/api/jobs/${closingJob.id}/close`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
+        },
+        body: JSON.stringify({
+          closed_reason: closeReason
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to close job');
+
+      setCloseSuccessMsg(`Job listing has been successfully closed.`);
+      
+      setTimeout(() => {
+        setClosingJob(null);
+        setCloseSuccessMsg('');
+        fetchEmployerJobs();
+      }, 1500);
+
+    } catch (err: any) {
+      setCloseErrorMsg(err.message);
+    } finally {
+      setIsSubmittingClose(false);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center">
       {/* Dark Banner */}
@@ -259,7 +315,7 @@ function EmployerDashboardContent() {
                   </thead>
                   <tbody className="divide-y divide-border-light">
                     {jobs.map((job) => {
-                      const status = getJobStatus(job.expires_at, job.moderation_status);
+                      const status = getJobStatus(job.expires_at, job.moderation_status, job.status);
                       const postedDate = new Date(job.created_at).toLocaleDateString('en-US', {
                         month: 'short', day: 'numeric', year: 'numeric'
                       });
@@ -311,12 +367,21 @@ function EmployerDashboardContent() {
                           <td className="px-6 py-5 text-right font-medium">
                             <div className="flex gap-3 justify-end">
                               {/* Extend Button */}
-                              {status.extendable && (
+                              {status.extendable && job.status !== 'closed' && (
                                 <button
                                   onClick={() => setExtensionJob(job)}
                                   className="px-3.5 py-1.5 rounded-lg border border-amber-200 text-amber-600 bg-amber-50 hover:bg-amber-100 transition-colors text-xs font-bold"
                                 >
-                                  Extend Validity
+                                  Extend
+                                </button>
+                              )}
+                              {/* Close Button */}
+                              {job.status !== 'closed' && (
+                                <button
+                                  onClick={() => setClosingJob(job)}
+                                  className="px-3.5 py-1.5 rounded-lg border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 transition-colors text-xs font-bold"
+                                >
+                                  Close
                                 </button>
                               )}
                               {/* Repost Button */}
@@ -411,6 +476,80 @@ function EmployerDashboardContent() {
           </div>
         </div>
       )}
+
+      {/* CLOSE JOB MODAL */}
+      {closingJob && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl border border-border-light shadow-2xl w-full max-w-md overflow-hidden relative p-6 md:p-8">
+            <button 
+              onClick={() => setClosingJob(null)}
+              className="absolute top-4 right-4 text-text-dark-tertiary hover:text-text-dark transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-5">
+              <div className="p-2.5 rounded-xl bg-red-50 border border-red-200">
+                <AlertTriangle className="w-6 h-6 text-red-500" />
+              </div>
+              <div>
+                <h3 className="font-bold text-text-dark text-lg">Close Job Listing</h3>
+                <p className="text-text-dark-tertiary text-xs">For: {closingJob.title}</p>
+              </div>
+            </div>
+
+            {closeSuccessMsg && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-green-600 text-sm font-semibold flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5" /> {closeSuccessMsg}
+              </div>
+            )}
+
+            {closeErrorMsg && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-medium">
+                {closeErrorMsg}
+              </div>
+            )}
+
+            <form onSubmit={handleCloseSubmit} className="flex flex-col gap-4">
+              <div>
+                <label className="block text-sm font-bold text-text-dark-secondary mb-2">Reason for Closing *</label>
+                <select
+                  value={closeReason}
+                  onChange={(e) => setCloseReason(e.target.value)}
+                  className="input-light w-full"
+                  required
+                >
+                  <option value="Hired via GenAIJobHub">Hired someone via GenAIJobHub</option>
+                  <option value="Hired externally">Hired someone externally</option>
+                  <option value="Role put on hold">Role was put on hold / cancelled</option>
+                  <option value="Other">Other</option>
+                </select>
+                <p className="text-[11px] text-text-dark-tertiary font-medium mt-1.5 leading-relaxed">
+                  * Closing this job will immediately remove it from search results and prevent further applications.
+                </p>
+              </div>
+
+              <div className="flex gap-3 justify-end mt-4">
+                <button
+                  type="button"
+                  onClick={() => setClosingJob(null)}
+                  className="px-5 py-2.5 rounded-xl font-bold text-sm text-text-dark border-2 border-border-light hover:bg-slate-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingClose}
+                  className="px-5 py-2.5 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 transition-colors"
+                >
+                  {isSubmittingClose ? 'Closing...' : 'Close Job'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

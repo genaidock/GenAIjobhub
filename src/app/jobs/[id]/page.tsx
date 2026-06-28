@@ -132,6 +132,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
     }
   }
 
+  const isClosed = job.status === 'closed';
   const isExpired = job.expires_at ? new Date(job.expires_at).getTime() < Date.now() : false;
 
   const postedDate = new Date(job.created_at).toLocaleDateString('en-US', {
@@ -263,6 +264,13 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                     Listing Rejected
                   </button>
                   <p className="text-xs text-text-dark-tertiary">This listing has been rejected by admin.</p>
+                </>
+              ) : isClosed ? (
+                <>
+                  <button disabled className="block w-full py-3.5 rounded-xl font-bold text-white bg-slate-300 dark:bg-slate-800 cursor-not-allowed opacity-50 mb-3">
+                    Listing Closed
+                  </button>
+                  <p className="text-xs text-text-dark-tertiary">This role has been filled or closed by the employer.</p>
                 </>
               ) : isExpired ? (
                 <>

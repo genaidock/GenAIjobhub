@@ -121,3 +121,7 @@ CREATE POLICY "Clients can view proposals for their gigs" ON public.proposals FO
 -- Add phone column to profiles
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS phone TEXT;
 
+-- Add status and closed_reason to jobs table
+ALTER TABLE public.jobs 
+ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'open' CHECK (status IN ('open', 'closed')),
+ADD COLUMN IF NOT EXISTS closed_reason TEXT;

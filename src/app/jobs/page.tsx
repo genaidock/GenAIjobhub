@@ -30,6 +30,7 @@ export default async function JobsBoard() {
     .select('*')
     .or('is_api_fetched.eq.true,moderation_status.eq.approved')
     .or('expires_at.is.null,expires_at.gt.' + new Date().toISOString())
+    .or('status.eq.open,status.is.null')
     .order('is_featured', { ascending: false })
     .order('created_at', { ascending: false });
 
