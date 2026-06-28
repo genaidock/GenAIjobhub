@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
@@ -30,18 +30,22 @@ function PostJobContent() {
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [upgradeCompany, setUpgradeCompany] = useState('');
   const { user, userType, session, isLoading: authLoading, refreshProfile } = useAuth();
-  const [profileRefreshed, setProfileRefreshed] = useState(false);
+  const hasRefreshed = useRef(false); // useRef prevents infinite loop from re-renders
+  const [profileReady, setProfileReady] = useState(false);
 
-  // Force-refresh profile on mount to get latest user_type from DB.
-  // This fixes the race condition where AuthProvider fetched the profile
-  // BEFORE our OAuth callback had time to update user_type = 'employer'.
+  // Force-refresh profile once on mount to fix race condition:
+  // AuthProvider may have fetched profile before OAuth callback updated user_type='employer'
   useEffect(() => {
-    if (!authLoading && user && !profileRefreshed) {
-      refreshProfile().then(() => setProfileRefreshed(true));
-    } else if (!authLoading && !user) {
+    if (authLoading) return; // Wait for initial auth to settle
+    if (!user) {
       router.replace('/login/employer?redirect=/post-job');
+      return;
     }
-  }, [user, authLoading, refreshProfile, profileRefreshed, router]);
+    if (!hasRefreshed.current) {
+      hasRefreshed.current = true; // Set synchronously to prevent double-call
+      refreshProfile().then(() => setProfileReady(true));
+    }
+  }, [user, authLoading, refreshProfile, router]);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -94,8 +98,8 @@ function PostJobContent() {
     }
   }, [user, searchParams]);
 
-  // Show spinner while auth loads OR while we're waiting for the profile refresh
-  if (authLoading || !user || !profileRefreshed) {
+  // Show spinner while auth loads OR while waiting for profile refresh
+  if (authLoading || !user || !profileReady) {
     return (
       <div className="flex items-center justify-center min-h-[70vh]">
         <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
