@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Save, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Save, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
 
 type ProfileFormProps = {
   initialData: {
@@ -30,6 +30,12 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+
+  // Delete account state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -68,8 +74,27 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') return;
+    setIsDeleting(true);
+    setDeleteError('');
+    try {
+      const res = await fetch('/api/user/delete', { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to delete account');
+      }
+      // Sign out client-side and redirect home
+      window.location.href = '/?deleted=1';
+    } catch (err: unknown) {
+      setDeleteError(err instanceof Error ? err.message : 'An error occurred');
+      setIsDeleting(false);
+    }
+  };
+
   return (
-    <div className="bg-bg-card border border-border rounded-xl p-6 shadow-sm">
+    <>
+      <div className="bg-bg-card border border-border rounded-xl p-6 shadow-sm">
       <h2 className="text-xl font-bold text-text-primary mb-6">Profile Details</h2>
 
       {success && (
@@ -171,5 +196,79 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
         </div>
       </form>
     </div>
-  );
-}
+
+    {/* ── Danger Zone ─────────────────────────────────────────────── */}
+    <div className="mt-8 bg-bg-card border border-red-500/20 rounded-xl p-6 shadow-sm">
+      <h2 className="text-xl font-bold text-red-400 mb-1">Danger Zone</h2>
+      <p className="text-text-secondary text-sm mb-4">
+        Permanently delete your account and all associated data. This action cannot be undone.
+        To change your role (e.g. Seeker → Employer), delete your account and re-register.
+      </p>
+      <button
+        onClick={() => { setShowDeleteModal(true); setDeleteConfirmText(''); setDeleteError(''); }}
+        className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm text-red-400 border border-red-500/30 hover:bg-red-500/10 transition-all"
+      >
+        <Trash2 className="w-4 h-4" /> Delete My Account
+      </button>
+    </div>
+
+    {/* ── Delete Confirmation Modal ────────────────────────────────── */}
+    {showDeleteModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+        <div className="w-full max-w-md bg-bg-card border border-red-500/30 rounded-2xl shadow-2xl p-8 relative">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20">
+              <Trash2 className="w-6 h-6 text-red-400" />
+            </div>
+            <div>
+              <h3 className="font-bold text-text-primary text-lg">Delete Account</h3>
+              <p className="text-text-secondary text-xs">This is permanent and irreversible</p>
+            </div>
+          </div>
+
+          <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-4 mb-5 text-sm text-red-300 space-y-1">
+            <p>⚠️ All your data will be permanently deleted:</p>
+            <ul className="list-disc list-inside text-red-400/80 text-xs space-y-0.5 mt-1">
+              <li>Your profile and account</li>
+              <li>All job listings you posted</li>
+              <li>All applications you submitted</li>
+            </ul>
+          </div>
+
+          <label className="block text-sm font-medium text-text-secondary mb-2">
+            Type <span className="font-bold text-red-400">DELETE</span> to confirm
+          </label>
+          <input
+            type="text"
+            value={deleteConfirmText}
+            onChange={(e) => setDeleteConfirmText(e.target.value)}
+            placeholder="DELETE"
+            className="w-full px-4 py-2.5 mb-4 rounded-lg border border-red-500/30 bg-background text-text-primary focus:outline-none focus:border-red-500 transition-all"
+          />
+
+          {deleteError && (
+            <p className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2 mb-4">
+              {deleteError}
+            </p>
+          )}
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowDeleteModal(false)}
+              disabled={isDeleting}
+              className="flex-1 px-4 py-2.5 rounded-lg font-semibold text-sm text-text-secondary border border-border hover:bg-white/5 transition-all disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDeleteAccount}
+              disabled={deleteConfirmText !== 'DELETE' || isDeleting}
+              className="flex-1 px-4 py-2.5 rounded-lg font-semibold text-sm text-white bg-red-500 hover:bg-red-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {isDeleting ? 'Deleting...' : 'Yes, Delete Forever'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+  </>;
