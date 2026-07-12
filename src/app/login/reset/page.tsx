@@ -25,7 +25,7 @@ function ResetContent() {
     setIsLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/profile?update_password=true`,
-      captchaToken: turnstileToken,
+      captchaToken: turnstileToken ?? undefined,
     });
     setMessage(
       error ? `Error: ${error.message}` : 'Check your email for a password reset link.'

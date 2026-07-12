@@ -54,7 +54,7 @@ function SeekerAuthContent() {
           email: form.email,
           password: form.password,
           options: {
-            captchaToken: turnstileToken,
+            captchaToken: turnstileToken ?? undefined,
             data: {
               user_type: 'seeker',
               full_name: form.full_name.trim(),
@@ -97,7 +97,7 @@ function SeekerAuthContent() {
         const { error } = await supabase.auth.signInWithPassword({
           email: loginEmail,
           password: form.password,
-          options: { captchaToken: turnstileToken },
+          options: { captchaToken: turnstileToken ?? undefined },
         });
         if (error) throw error;
         router.push(redirectTo);
