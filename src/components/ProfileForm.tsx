@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
 import { COUNTRIES } from '@/lib/countries';
+import { supabase } from '@/lib/supabase';
 
 type ProfileFormProps = {
   initialData: {
@@ -104,6 +105,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
         throw new Error(data.error || 'Failed to delete account');
       }
       // Sign out client-side and redirect home
+      await supabase.auth.signOut();
       window.location.href = '/?deleted=1';
     } catch (err: unknown) {
       setDeleteError(err instanceof Error ? err.message : 'An error occurred');

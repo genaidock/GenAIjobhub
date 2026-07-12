@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Briefcase, Search, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
+import { supabase } from '@/lib/supabase';
 
 function LoginContent() {
   const router = useRouter();
@@ -22,6 +23,11 @@ function LoginContent() {
       // User exists but profile not yet synced — redirect to post-job directly
       if (redirectTo) {
         router.replace(redirectTo);
+      } else {
+        // Stale session (e.g. account deleted but cookie remains). Clear it.
+        supabase.auth.signOut().then(() => {
+          window.location.reload();
+        });
       }
     }
   }, [user, profile, isLoading, router, redirectTo]);
