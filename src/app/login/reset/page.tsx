@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 function ResetContent() {
   const searchParams = useSearchParams();
@@ -12,12 +13,19 @@ function ResetContent() {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!turnstileToken) {
+      setMessage('Error: Please complete the security check.');
+      return;
+    }
+    
     setIsLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/profile?update_password=true`,
+      captchaToken: turnstileToken,
     });
     setMessage(
       error ? `Error: ${error.message}` : 'Check your email for a password reset link.'
@@ -60,9 +68,16 @@ function ResetContent() {
               {message}
             </p>
           )}
+          <div className="flex justify-center my-2">
+            <Turnstile
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'}
+              onSuccess={(token) => setTurnstileToken(token)}
+              options={{ theme: 'dark' }}
+            />
+          </div>
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || !turnstileToken}
             className="w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r from-accent-primary to-accent-secondary disabled:opacity-50 hover:-translate-y-0.5 transition-all"
           >
             {isLoading ? 'Sending...' : 'Send Reset Link'}

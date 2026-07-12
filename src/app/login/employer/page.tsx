@@ -77,7 +77,7 @@ function EmployerAuthContent() {
     setError('');
     setSuccessMsg('');
 
-    if (mode === 'signup' && !turnstileToken) {
+    if ((mode === 'signup' || mode === 'login') && !turnstileToken) {
       setError('Please complete the security check.');
       setIsLoading(false);
       return;
@@ -101,6 +101,7 @@ function EmployerAuthContent() {
           email: form.email,
           password: form.password,
           options: {
+            captchaToken: turnstileToken,
             data: {
               user_type: 'employer',
               full_name: form.full_name.trim(),
@@ -149,6 +150,7 @@ function EmployerAuthContent() {
         const { error } = await supabase.auth.signInWithPassword({
           email: loginEmail,
           password: form.password,
+          options: { captchaToken: turnstileToken },
         });
         if (error) throw error;
         router.push(redirectTo);
@@ -379,7 +381,7 @@ function EmployerAuthContent() {
             </p>
           )}
 
-          {mode === 'signup' && (
+          {(mode === 'signup' || mode === 'login') && (
             <div className="flex justify-center my-2">
               <Turnstile
                 siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'}
@@ -391,7 +393,7 @@ function EmployerAuthContent() {
 
           <button
             type="submit"
-            disabled={isLoading || (mode === 'signup' && !turnstileToken)}
+            disabled={isLoading || ((mode === 'signup' || mode === 'login') && !turnstileToken)}
             className="w-full py-3 mt-2 rounded-xl font-bold text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:transform-none shadow-[0_4px_15px_rgba(109,40,217,0.35)]"
           >
             {isLoading ? 'Processing...' : mode === 'otp' ? 'Verify OTP' : mode === 'login' ? 'Log In' : 'Create Account'}
