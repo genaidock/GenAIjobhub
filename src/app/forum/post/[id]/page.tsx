@@ -10,7 +10,7 @@ export default async function ForumPostPage({ params }: { params: Promise<{ id: 
   // Fetch post with author and category
   const { data: post } = await supabase
     .from('forum_posts')
-    .select('*, author:profiles(full_name, user_type), category:forum_categories(name)')
+    .select('*, author:profiles(full_name, username, company_name, email, user_type), category:forum_categories(name)')
     .eq('id', id)
     .single();
 
@@ -19,11 +19,12 @@ export default async function ForumPostPage({ params }: { params: Promise<{ id: 
   // Fetch comments for this post
   const { data: comments } = await supabase
     .from('forum_comments')
-    .select('*, author:profiles(full_name, user_type)')
+    .select('*, author:profiles(full_name, username, company_name, email, user_type)')
     .eq('post_id', post.id)
     .order('created_at', { ascending: true });
 
   const categorySlug = post.category?.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const getAuthorName = (author: any) => author?.username ? `@${author.username}` : 'Anonymous';
 
   return (
     <div className="flex flex-col items-center min-h-screen">
@@ -37,10 +38,12 @@ export default async function ForumPostPage({ params }: { params: Promise<{ id: 
           
           <div className="flex items-center gap-3 text-sm text-text-secondary">
             <div className="w-8 h-8 rounded-full bg-accent-primary/20 flex items-center justify-center text-accent-primary font-bold">
-              {post.author?.full_name?.charAt(0) || '?'}
+              {getAuthorName(post.author).charAt(0).toUpperCase()}
             </div>
             <div>
-              <p className="font-bold text-white">{post.author?.full_name || 'Anonymous'}</p>
+              <div className="flex items-center gap-2">
+                <p className="font-bold text-white">{getAuthorName(post.author)}</p>
+              </div>
               <p className="text-xs">{new Date(post.created_at).toLocaleString()}</p>
             </div>
           </div>
@@ -69,7 +72,9 @@ export default async function ForumPostPage({ params }: { params: Promise<{ id: 
               comments.map(comment => (
                 <div key={comment.id} className="card-light bg-white p-5 border-l-4 border-l-accent-primary rounded-r-xl rounded-l-none shadow-sm">
                   <div className="flex items-center gap-3 text-sm mb-3">
-                    <span className="font-bold text-text-dark">{comment.author?.full_name || 'Anonymous'}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-text-dark">{getAuthorName(comment.author)}</span>
+                    </div>
                     <span className="text-text-dark-tertiary text-xs">{new Date(comment.created_at).toLocaleString()}</span>
                   </div>
                   <p className="text-text-dark-secondary whitespace-pre-wrap">{comment.content}</p>

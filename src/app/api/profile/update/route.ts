@@ -26,7 +26,7 @@ export async function PUT(req: Request) {
     }
 
     const payload = await req.json();
-    const { full_name, company_name, linkedin_url, phone, company_domain, employee_range, city, state, country, pincode } = payload;
+    const { full_name, company_name, linkedin_url, phone, company_domain, employee_range, city, state, country, pincode, username } = payload;
 
     const updateData: Record<string, any> = {};
     if (full_name !== undefined) updateData.full_name = full_name;
@@ -39,15 +39,31 @@ export async function PUT(req: Request) {
     if (state !== undefined) updateData.state = state;
     if (country !== undefined) updateData.country = country;
     if (pincode !== undefined) updateData.pincode = pincode;
-
+    
     const adminClient = createAdminClient();
+    
+    // Check if the user already has a username to prevent changing it
+    const { data: currentProfile } = await adminClient
+      .from('profiles')
+      .select('username')
+      .eq('id', user.id)
+      .single();
+
+    if (currentProfile?.username && username !== undefined && username !== currentProfile.username) {
+      return NextResponse.json({ error: 'Username cannot be changed once set' }, { status: 400 });
+    }
+
+    if (username !== undefined && !currentProfile?.username) {
+      updateData.username = username;
+    }
+
     const { error: updateError } = await adminClient
       .from('profiles')
       .update(updateData)
       .eq('id', user.id);
 
     if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
+      return NextResponse.json({ error: updateError.message, code: updateError.code }, { status: 500 });
     }
 
     return NextResponse.json({ message: 'Profile updated successfully' }, { status: 200 });

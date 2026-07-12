@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import ProfileForm from '@/components/ProfileForm';
+import PasswordForm from '@/components/PasswordForm';
 
 export const metadata = {
   title: 'My Profile - GenAIJobhub',
@@ -42,6 +43,7 @@ export default async function ProfilePage() {
   // Combine auth user email and profile data
   const initialData = {
     full_name: profile.full_name,
+    username: profile.username,
     company_name: profile.company_name,
     linkedin_url: profile.linkedin_url,
     company_domain: profile.company_domain,
@@ -64,6 +66,7 @@ export default async function ProfilePage() {
         </div>
 
         <ProfileForm initialData={initialData} />
+        <PasswordForm />
       </div>
     </div>
   );

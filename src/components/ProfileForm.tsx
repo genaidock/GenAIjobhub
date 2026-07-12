@@ -8,6 +8,7 @@ import { COUNTRIES } from '@/lib/countries';
 type ProfileFormProps = {
   initialData: {
     full_name: string | null;
+    username: string | null;
     company_name: string | null;
     linkedin_url: string | null;
     company_domain: string | null;
@@ -27,6 +28,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
   
   const [formData, setFormData] = useState({
     full_name: initialData.full_name || '',
+    username: initialData.username || '',
     company_name: initialData.company_name || '',
     linkedin_url: initialData.linkedin_url || '',
     company_domain: initialData.company_domain || '',
@@ -64,6 +66,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           full_name: formData.full_name,
+          username: formData.username,
           company_name: formData.company_name,
           linkedin_url: formData.linkedin_url,
           company_domain: formData.company_domain,
@@ -136,6 +139,24 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
               disabled
               value={initialData.email || ''}
               className="w-full px-4 py-2.5 rounded-lg border border-border bg-white/5 text-text-secondary cursor-not-allowed"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">
+              Username {initialData.username ? '(Uneditable)' : ''}
+            </label>
+            <input
+              type="text"
+              name="username"
+              required
+              disabled={!!initialData.username}
+              value={formData.username}
+              onChange={handleChange}
+              className={`w-full px-4 py-2.5 rounded-lg border border-border text-text-primary focus:outline-none transition-all ${
+                initialData.username
+                  ? 'bg-white/5 text-text-secondary cursor-not-allowed'
+                  : 'bg-background focus:border-accent-primary focus:ring-1 focus:ring-accent-primary'
+              }`}
             />
           </div>
           <div>

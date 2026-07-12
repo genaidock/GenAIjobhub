@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { AuthProvider } from "@/components/AuthProvider";
+import ProfileSetupModal from "@/components/ProfileSetupModal";
 import { Analytics } from "@vercel/analytics/react";
 
 const outfit = Outfit({
@@ -26,6 +27,7 @@ export default function RootLayout({
       <body suppressHydrationWarning className={`${outfit.variable} font-sans antialiased bg-background text-foreground min-h-screen flex flex-col`} style={{ fontFamily: 'var(--font-outfit), system-ui, sans-serif' }}>
         <AuthProvider>
           <Navbar />
+          <ProfileSetupModal />
           <main className="flex-grow">
             {children}
           </main>

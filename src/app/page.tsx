@@ -45,7 +45,7 @@ export default async function Home() {
       {/* ────────────────────────────────────────
           HERO SECTION — Dark with animated glows
           ──────────────────────────────────────── */}
-      <section className="hero-glow hero-grid relative w-full py-32 md:py-40 px-[5%] text-center overflow-hidden flex flex-col items-center justify-center bg-background">
+      <section className="hero-glow hero-grid relative w-full pt-16 pb-24 md:pt-20 md:pb-32 px-[5%] text-center overflow-hidden flex flex-col items-center justify-center bg-background">
         {/* Animated gradient orbs */}
         <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] rounded-full bg-purple-600/20 blur-[120px] animate-pulse pointer-events-none" />
         <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] rounded-full bg-indigo-500/15 blur-[100px] animate-pulse pointer-events-none" style={{ animationDelay: '2s', animationDuration: '4s' }} />
@@ -114,7 +114,7 @@ export default async function Home() {
               featuredJobs.map((job) => (
                 <div key={job.id} className="card-light p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center">
                   <div>
-                    <Link href={`/jobs/${job.id}`} className="hover:underline">
+                    <Link href={user ? `/jobs/${job.id}` : '/login'} className="hover:underline">
                       <h3 className="text-xl md:text-2xl font-bold mb-3 text-text-dark">{job.title}</h3>
                     </Link>
                     <div className="flex flex-wrap gap-4 text-sm mb-3 items-center">
@@ -127,13 +127,21 @@ export default async function Home() {
                     {job.is_remote && (
                       <span className="pill pill-green">✓ Remote</span>
                     )}
-                    <Link href={`/jobs/${job.id}`} className="px-6 py-2.5 rounded-lg font-semibold text-text-dark border-2 border-border-light hover:border-accent-primary hover:text-accent-primary transition-all text-sm text-center">
-                      View Details
-                    </Link>
-                    {job.apply_url && (
-                      <ApplyButton jobId={job.id} applyUrl={job.apply_url} className="px-6 py-2.5 rounded-lg font-semibold text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-0.5 shadow-[0_4px_15px_rgba(109,40,217,0.3)] hover:shadow-[0_6px_20px_rgba(109,40,217,0.4)] transition-all text-sm text-center">
-                        Apply Now
-                      </ApplyButton>
+                    {user ? (
+                      <>
+                        <Link href={`/jobs/${job.id}`} className="px-6 py-2.5 rounded-lg font-semibold text-text-dark border-2 border-border-light hover:border-accent-primary hover:text-accent-primary transition-all text-sm text-center">
+                          View Details
+                        </Link>
+                        {job.apply_url && (
+                          <ApplyButton jobId={job.id} applyUrl={job.apply_url} className="px-6 py-2.5 rounded-lg font-semibold text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-0.5 shadow-[0_4px_15px_rgba(109,40,217,0.3)] hover:shadow-[0_6px_20px_rgba(109,40,217,0.4)] transition-all text-sm text-center">
+                            Apply Now
+                          </ApplyButton>
+                        )}
+                      </>
+                    ) : (
+                      <Link href="/login" className="px-6 py-2.5 rounded-lg font-semibold text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-0.5 shadow-[0_4px_15px_rgba(109,40,217,0.3)] hover:shadow-[0_6px_20px_rgba(109,40,217,0.4)] transition-all text-sm text-center whitespace-nowrap">
+                        Log in to see details
+                      </Link>
                     )}
                   </div>
                 </div>

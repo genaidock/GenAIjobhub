@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Briefcase, Menu, X, ChevronDown, LogOut, LayoutDashboard, Brain, FileText } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 
@@ -12,6 +12,7 @@ export default function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, profile, userType, isLoading, signOut } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close user dropdown when clicking outside
@@ -141,14 +142,14 @@ export default function Navbar() {
               )}
             </div>
           </>
-        ) : (
+        ) : !pathname.startsWith('/login') ? (
           /* Logged out state */
           <>
-            <Link href="/login" className="px-5 py-2.5 rounded-lg font-semibold text-sm text-text-primary border border-white/10 hover:bg-white/5 hover:border-white/20 transition-all">
+            <Link href="/login" className="px-6 py-2.5 rounded-xl font-bold text-sm text-white bg-[#14141e]/50 border border-white/20 hover:bg-white/10 hover:border-white/30 shadow-sm transition-all">
               Log In
             </Link>
           </>
-        )}
+        ) : null}
       </div>
 
       {/* Mobile Hamburger */}
@@ -190,11 +191,11 @@ export default function Navbar() {
               )}
               <button onClick={handleSignOut} className="font-medium text-red-400 text-left">Sign Out</button>
             </>
-          ) : (
+          ) : !pathname.startsWith('/login') ? (
             <>
               <Link href="/login" className="font-medium text-text-secondary hover:text-text-primary">Log In</Link>
             </>
-          )}
+          ) : null}
         </div>
       )}
     </nav>

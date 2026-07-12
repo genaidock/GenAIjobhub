@@ -279,6 +279,13 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                   </button>
                   <p className="text-xs text-text-dark-tertiary">This opportunity is no longer open.</p>
                 </>
+              ) : !user ? (
+                <>
+                  <Link href="/login" className="flex justify-center items-center w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-1 shadow-[0_4px_15px_rgba(109,40,217,0.35)] transition-all mb-3 text-center">
+                    Log in to Apply
+                  </Link>
+                  <p className="text-xs text-text-dark-tertiary">You must be logged in to apply for this job.</p>
+                </>
               ) : isOwner ? (
                 <>
                   <button disabled className="block w-full py-3.5 rounded-xl font-bold text-white bg-slate-300 dark:bg-slate-800 cursor-not-allowed opacity-50 mb-3">

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useMemo } from 'react';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import ApplyButton from './ApplyButton';
+import { useAuth } from '@/components/AuthProvider';
 
 function CompanyLogo({ domain, companyName }: { domain: string | null, companyName: string }) {
   const [error, setError] = useState(false);
@@ -29,6 +31,7 @@ function CompanyLogo({ domain, companyName }: { domain: string | null, companyNa
 }
 
 export default function JobsBoardClient({ initialJobs }: { initialJobs: any[] }) {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   
   // Dynamic Locations
@@ -256,14 +259,14 @@ export default function JobsBoardClient({ initialJobs }: { initialJobs: any[] })
                       ⭐ Featured
                     </div>
                   )}
-                  <div className="flex gap-6 w-full md:w-auto items-start">
+                  <div className="flex flex-1 gap-6 w-full items-start pr-4 md:pr-8">
                     {/* Company Logo */}
                     <div className="w-16 h-16 rounded-xl bg-background border border-border-light flex-shrink-0 flex items-center justify-center overflow-hidden shadow-sm">
                       <CompanyLogo domain={domain} companyName={job.company_name} />
                     </div>
                     
                     <div className="flex-1">
-                      <Link href={`/jobs/${job.id}`} className="hover:underline">
+                      <Link href={user ? `/jobs/${job.id}` : '/login'} className="hover:underline">
                         <h3 className="text-xl md:text-2xl font-bold mb-2 text-text-dark group-hover:text-accent-primary transition-colors">{job.title}</h3>
                       </Link>
                       
@@ -285,13 +288,21 @@ export default function JobsBoardClient({ initialJobs }: { initialJobs: any[] })
                       <span className="pill pill-green whitespace-nowrap">✓ Remote</span>
                     )}
                     <div className="flex gap-3 w-full md:w-auto justify-end">
-                      <Link href={`/jobs/${job.id}`} className="px-5 py-2 rounded-lg font-semibold text-text-dark border-2 border-border-light hover:border-accent-primary hover:text-accent-primary transition-all text-sm whitespace-nowrap">
-                        View Details
-                      </Link>
-                      {job.apply_url && (
-                        <ApplyButton jobId={job.id} applyUrl={job.apply_url} className="px-5 py-2 rounded-lg font-semibold text-sm text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-0.5 shadow-md hover:shadow-lg transition-all whitespace-nowrap">
-                          Apply
-                        </ApplyButton>
+                      {user ? (
+                        <>
+                          <Link href={`/jobs/${job.id}`} className="px-5 py-2 rounded-lg font-semibold text-text-dark border-2 border-border-light hover:border-accent-primary hover:text-accent-primary transition-all text-sm whitespace-nowrap">
+                            View Details
+                          </Link>
+                          {job.apply_url && (
+                            <ApplyButton jobId={job.id} applyUrl={job.apply_url} className="px-5 py-2 rounded-lg font-semibold text-sm text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-0.5 shadow-md hover:shadow-lg transition-all whitespace-nowrap">
+                              Apply
+                            </ApplyButton>
+                          )}
+                        </>
+                      ) : (
+                        <Link href="/login" className="px-5 py-2 rounded-lg font-semibold text-sm text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-0.5 shadow-md hover:shadow-lg transition-all whitespace-nowrap">
+                          Log in to see details
+                        </Link>
                       )}
                     </div>
                   </div>

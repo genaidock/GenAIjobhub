@@ -35,9 +35,11 @@ export default async function ForumCategoryPage({ params }: { params: Promise<{ 
   // Fetch posts for this category
   const { data: posts } = await supabaseServer
     .from('forum_posts')
-    .select('*, author:profiles(full_name, user_type)')
+    .select('*, author:profiles(full_name, username, company_name, email, user_type)')
     .eq('category_id', category.id)
     .order('created_at', { ascending: false });
+
+  const getAuthorName = (author: any) => author?.username ? `@${author.username}` : 'Anonymous';
 
   return (
     <div className="flex flex-col items-center min-h-[80vh]">
@@ -67,11 +69,11 @@ export default async function ForumCategoryPage({ params }: { params: Promise<{ 
                 <div>
                   <h3 className="text-xl font-bold text-text-dark group-hover:text-accent-primary transition-colors mb-2">{post.title}</h3>
                   <div className="flex gap-4 items-center text-sm text-text-dark-secondary font-medium">
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1.5">
                       <div className="w-5 h-5 rounded-full bg-accent-primary/20 flex items-center justify-center text-xs text-accent-primary font-bold">
-                        {post.author?.full_name?.charAt(0) || '?'}
+                        {getAuthorName(post.author).charAt(0).toUpperCase()}
                       </div>
-                      {post.author?.full_name || 'Anonymous'}
+                      <span>{getAuthorName(post.author)}</span>
                     </span>
                     <span className="opacity-50">•</span>
                     <span>{new Date(post.created_at).toLocaleDateString()}</span>

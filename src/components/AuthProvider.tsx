@@ -12,6 +12,7 @@ export interface Profile {
   id: string;
   email: string;
   full_name: string | null;
+  username: string | null;
   company_name: string | null;
   linkedin_url: string | null;
   user_type: UserType;

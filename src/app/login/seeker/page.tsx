@@ -75,8 +75,26 @@ function SeekerAuthContent() {
         if (error) throw error;
         router.push(redirectTo);
       } else {
+        let loginEmail = form.email.trim();
+        
+        // If they entered a username (no @ symbol), we resolve it to an email
+        if (!loginEmail.includes('@')) {
+          const res = await fetch('/api/auth/lookup-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: loginEmail })
+          });
+          
+          if (!res.ok) {
+            throw new Error('Invalid username or password.');
+          }
+          
+          const data = await res.json();
+          loginEmail = data.email;
+        }
+
         const { error } = await supabase.auth.signInWithPassword({
-          email: form.email,
+          email: loginEmail,
           password: form.password,
         });
         if (error) throw error;
@@ -189,14 +207,16 @@ function SeekerAuthContent() {
           )}
 
           <div>
-            <label className="block text-sm font-bold text-text-secondary mb-2">Email *</label>
+            <label className="block text-sm font-bold text-text-secondary mb-2">
+              {mode === 'login' ? 'Email or Username *' : 'Email *'}
+            </label>
             <input
-              type="email"
+              type={mode === 'login' ? 'text' : 'email'}
               name="email"
               value={form.email}
               onChange={handleChange}
               required
-              placeholder="you@email.com"
+              placeholder={mode === 'login' ? "you@email.com or @username" : "you@email.com"}
               className="w-full p-3 bg-background border border-border rounded-xl text-white focus:outline-none focus:border-accent-secondary transition-colors"
             />
           </div>
