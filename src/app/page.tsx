@@ -21,6 +21,8 @@ export default async function Home() {
     }
   );
 
+  const { data: { user } } = await supabase.auth.getUser();
+
   // Fetch live featured jobs from your Supabase database
   const { data: featuredJobs } = await supabase
     .from('jobs')
