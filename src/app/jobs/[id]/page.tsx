@@ -253,12 +253,12 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
       <section className="section-light w-full py-12 px-[5%]">
         <div className="max-w-[800px] mx-auto flex flex-col md:flex-row gap-8 items-start">
           
-          <div className="flex-grow card-light p-8 md:p-10 w-full">
+          <article className="flex-grow card-light p-8 md:p-10 w-full">
             <h2 className="text-xl font-bold text-text-dark mb-6 border-b border-border-light pb-4">Job Description</h2>
             <div className="prose prose-purple prose-slate max-w-none text-text-dark-secondary">
               <ReactMarkdown>{job.description || "No description provided."}</ReactMarkdown>
             </div>
-          </div>
+          </article>
 
           <aside className="w-full md:w-[300px] flex-shrink-0 sticky top-24 flex flex-col gap-4">
             <div className="card-light p-6 text-center">

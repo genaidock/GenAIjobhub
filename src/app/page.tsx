@@ -61,7 +61,7 @@ export default async function Home() {
             Monetize Your <span className="gradient-text">AI Skills</span> Today
           </h1>
           <p className="animate-fade-in-up-delay-2 text-lg md:text-xl text-text-secondary mb-12 max-w-2xl leading-relaxed">
-            Discover the highest-paying machine learning roles, prompt engineering gigs, and AI product manager positions across India and the globe.
+            GenAIJobHub is the leading specialized job board connecting artificial intelligence professionals with top employers. We curate the highest-paying remote machine learning roles, prompt engineering freelance gigs, and AI product manager positions. Find your next career opportunity or discover cutting-edge AI tools today.
           </p>
           <div className="animate-fade-in-up-delay-3 flex flex-col sm:flex-row gap-5 mb-20">
             <Link href="/jobs" className="px-10 py-4 rounded-xl font-bold text-lg text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-1 shadow-[0_4px_15px_rgba(109,40,217,0.4)] hover:shadow-[0_8px_30px_rgba(109,40,217,0.5)] transition-all">
