@@ -140,7 +140,7 @@ function SeekerAuthContent() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-text-primary">
-              {mode === 'otp' ? 'Verify Email' : mode === 'login' ? 'Job Seeker Login' : 'Create Seeker Account'}
+              {mode === 'otp' ? 'Verify email' : mode === 'login' ? 'Job seeker login' : 'Create seeker account'}
             </h1>
             <p className="text-text-secondary text-xs">
               {mode === 'otp' ? 'Enter the code sent to your email' : 'Browse jobs · Track applications'}
@@ -181,7 +181,7 @@ function SeekerAuthContent() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {mode === 'otp' ? (
             <div>
-              <label className="block text-sm font-bold text-text-secondary mb-2">8-Digit Code *</label>
+              <label className="block text-sm font-bold text-text-secondary mb-2">8-digit code *</label>
               <input
                 type="text"
                 name="otp"
@@ -196,7 +196,7 @@ function SeekerAuthContent() {
             <>
               {mode === 'signup' && (
             <div>
-              <label className="block text-sm font-bold text-text-secondary mb-2">Your Full Name *</label>
+              <label className="block text-sm font-bold text-text-secondary mb-2">Your full name *</label>
               <input
                 type="text"
                 name="full_name"
@@ -211,7 +211,7 @@ function SeekerAuthContent() {
 
           <div>
             <label className="block text-sm font-bold text-text-secondary mb-2">
-              {mode === 'login' ? 'Email or Username *' : 'Email *'}
+              {mode === 'login' ? 'Email or username *' : 'Email *'}
             </label>
             <input
               type={mode === 'login' ? 'text' : 'email'}
@@ -292,8 +292,21 @@ function SeekerAuthContent() {
             disabled={isLoading || ((mode === 'signup' || mode === 'login') && !turnstileToken)}
             className="w-full py-3 mt-2 rounded-xl font-bold text-white bg-gradient-to-r from-indigo-500 to-accent-secondary hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:transform-none"
           >
-            {isLoading ? 'Processing...' : mode === 'otp' ? 'Verify OTP' : mode === 'login' ? 'Log In' : 'Create Free Account'}
+            {isLoading ? 'Processing...' : mode === 'otp' ? 'Verify OTP' : mode === 'login' ? 'Log in' : 'Create free account'}
           </button>
+
+          {mode === 'signup' && (
+            <p className="text-xs text-text-secondary text-center mt-2">
+              By creating an account, you agree to our{' '}
+              <Link href="/terms" className="text-accent-secondary hover:underline">
+                terms of service
+              </Link>{' '}
+              and{' '}
+              <Link href="/privacy" className="text-accent-secondary hover:underline">
+                privacy policy
+              </Link>.
+            </p>
+          )}
         </form>
 
         {mode !== 'otp' && (

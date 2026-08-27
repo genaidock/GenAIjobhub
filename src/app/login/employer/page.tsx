@@ -193,7 +193,7 @@ function EmployerAuthContent() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-text-primary">
-              {mode === 'otp' ? 'Verify Email' : mode === 'login' ? 'Employer Login' : 'Create Employer Account'}
+              {mode === 'otp' ? 'Verify email' : mode === 'login' ? 'Employer login' : 'Create employer account'}
             </h1>
             <p className="text-text-secondary text-xs">
               {mode === 'otp' ? 'Enter the code sent to your email' : 'Post AI jobs · Manage listings'}
@@ -220,7 +220,7 @@ function EmployerAuthContent() {
               {mode === 'signup' && (
             <>
               <div>
-                <label className="block text-sm font-bold text-text-secondary mb-2">Your Full Name *</label>
+                <label className="block text-sm font-bold text-text-secondary mb-2">Your full name *</label>
                 <input
                   type="text"
                   name="full_name"
@@ -232,7 +232,7 @@ function EmployerAuthContent() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-text-secondary mb-2">Company Name *</label>
+                <label className="block text-sm font-bold text-text-secondary mb-2">Company name *</label>
                 <input
                   type="text"
                   name="company_name"
@@ -245,7 +245,7 @@ function EmployerAuthContent() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-text-secondary mb-2">Company Domain *</label>
+                  <label className="block text-sm font-bold text-text-secondary mb-2">Company domain *</label>
                   <input
                     type="text"
                     name="company_domain"
@@ -290,7 +290,7 @@ function EmployerAuthContent() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-text-secondary mb-2">Pincode/Zip *</label>
+                  <label className="block text-sm font-bold text-text-secondary mb-2">Pincode/zip *</label>
                   <input
                     type="text"
                     name="pincode"
@@ -333,7 +333,7 @@ function EmployerAuthContent() {
 
           <div>
             <label className="block text-sm font-bold text-text-secondary mb-2">
-              {mode === 'login' ? 'Email or Username *' : 'Work Email *'}
+              {mode === 'login' ? 'Email or username *' : 'Work email *'}
             </label>
             <input
               type={mode === 'login' ? 'text' : 'email'}
@@ -397,8 +397,21 @@ function EmployerAuthContent() {
             disabled={isLoading || ((mode === 'signup' || mode === 'login') && !turnstileToken)}
             className="w-full py-3 mt-2 rounded-xl font-bold text-white bg-gradient-to-r from-accent-primary to-accent-secondary hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:transform-none shadow-[0_4px_15px_rgba(109,40,217,0.35)]"
           >
-            {isLoading ? 'Processing...' : mode === 'otp' ? 'Verify OTP' : mode === 'login' ? 'Log In' : 'Create Account'}
+            {isLoading ? 'Processing...' : mode === 'otp' ? 'Verify OTP' : mode === 'login' ? 'Log in' : 'Create account'}
           </button>
+
+          {mode === 'signup' && (
+            <p className="text-xs text-text-secondary text-center mt-2">
+              By creating an account, you agree to our{' '}
+              <Link href="/terms" className="text-accent-primary hover:underline">
+                terms of service
+              </Link>{' '}
+              and{' '}
+              <Link href="/privacy" className="text-accent-primary hover:underline">
+                privacy policy
+              </Link>.
+            </p>
+          )}
         </form>
 
         {mode !== 'otp' && (
