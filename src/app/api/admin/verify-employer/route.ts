@@ -25,8 +25,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (user.email?.toLowerCase() !== 'admin@genaijobhub.com') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    const adminClient = createAdminClient();
+
+    // Verify admin role from database profile
+    const { data: profile, error: profileError } = await adminClient
+      .from('profiles')
+      .select('user_type')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || profile?.user_type !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden: Administrator privileges required' }, { status: 403 });
     }
 
     const { employerId } = await req.json();
@@ -35,14 +44,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Employer ID is required' }, { status: 400 });
     }
 
-    const adminClient = createAdminClient();
     const { error: updateError } = await adminClient
       .from('profiles')
       .update({ is_verified: true })
       .eq('id', employerId);
 
     if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
+      console.error('Failed to verify employer:', updateError);
+      return NextResponse.json({ error: 'Failed to verify employer' }, { status: 500 });
     }
 
     return NextResponse.json({ message: 'Employer verified successfully' }, { status: 200 });

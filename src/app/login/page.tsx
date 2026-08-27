@@ -6,12 +6,14 @@ import Link from 'next/link';
 import { Briefcase, Search, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
+import { getSafeRedirectUrl } from '@/lib/security';
 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, profile, isLoading } = useAuth();
-  const redirectTo = searchParams.get('redirect') ?? '';
+  const rawRedirect = searchParams.get('redirect');
+  const redirectTo = rawRedirect ? getSafeRedirectUrl(rawRedirect, '') : '';
 
   // If already logged in, redirect to appropriate dashboard
   // Wait for both user AND profile to be loaded to avoid race conditions

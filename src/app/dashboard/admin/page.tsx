@@ -17,8 +17,6 @@ import {
   Users
 } from 'lucide-react';
 
-const ADMIN_EMAIL = 'admin@genaijobhub.com';
-
 function AdminDashboardContent() {
   const router = useRouter();
   const { user, profile, session, isLoading: authLoading } = useAuth();
@@ -37,16 +35,16 @@ function AdminDashboardContent() {
   // Expanded card state to view descriptions
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
 
-  // Strict Admin Guard
+  // Strict Admin Guard via database role
   useEffect(() => {
     if (!authLoading) {
       if (!user) {
         router.replace('/login/admin');
-      } else if (user.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+      } else if (profile && profile.user_type !== 'admin') {
         router.replace('/jobs');
       }
     }
-  }, [user, authLoading, router]);
+  }, [user, profile, authLoading, router]);
 
   const fetchPendingJobs = async () => {
     if (!user || !session) return;
@@ -89,11 +87,11 @@ function AdminDashboardContent() {
   };
 
   useEffect(() => {
-    if (user && session && user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+    if (user && session && profile?.user_type === 'admin') {
       fetchPendingJobs();
       fetchPendingEmployers();
     }
-  }, [user, session]);
+  }, [user, session, profile]);
 
   const handleVerifyEmployer = async (employerId: string) => {
     if (!session) return;
@@ -160,7 +158,7 @@ function AdminDashboardContent() {
     }
   };
 
-  if (authLoading || !user || user.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+  if (authLoading || !user || profile?.user_type !== 'admin') {
     return (
       <div className="flex items-center justify-center min-h-[70vh]">
         <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />

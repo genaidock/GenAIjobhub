@@ -25,11 +25,19 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (user.email?.toLowerCase() !== 'admin@genaijobhub.com') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    const adminClient = createAdminClient();
+
+    // Verify admin role from database profile
+    const { data: profile, error: profileError } = await adminClient
+      .from('profiles')
+      .select('user_type')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || profile?.user_type !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden: Administrator privileges required' }, { status: 403 });
     }
 
-    const adminClient = createAdminClient();
     const { data: employers, error: fetchError } = await adminClient
       .from('profiles')
       .select('*')
@@ -38,7 +46,8 @@ export async function GET(req: Request) {
       .order('created_at', { ascending: false });
 
     if (fetchError) {
-      return NextResponse.json({ error: fetchError.message }, { status: 500 });
+      console.error('Failed to fetch unverified employers:', fetchError);
+      return NextResponse.json({ error: 'Failed to fetch unverified employers' }, { status: 500 });
     }
 
     return NextResponse.json({ employers }, { status: 200 });

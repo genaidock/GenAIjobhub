@@ -43,8 +43,16 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   // Security gate for unapproved jobs in SEO metadata
   if (job.moderation_status === 'pending' || job.moderation_status === 'rejected') {
     const { data: { user } } = await supabaseServer.auth.getUser();
+    let isAdmin = false;
+    if (user) {
+      const { data: profile } = await supabaseServer
+        .from('profiles')
+        .select('user_type')
+        .eq('id', user.id)
+        .single();
+      isAdmin = profile?.user_type === 'admin';
+    }
     const isOwner = user && user.id === job.employer_id;
-    const isAdmin = user && user.email?.toLowerCase() === 'admin@genaijobhub.com';
 
     if (!isOwner && !isAdmin) {
       return {
@@ -96,16 +104,19 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
   // Always get current user to determine ownership/permissions and application status
   const { data: { user } } = await supabaseServer.auth.getUser();
   const isOwner = user && user.id === job.employer_id;
-  const isAdmin = user && user.email?.toLowerCase() === 'admin@genaijobhub.com';
 
   let userType = null;
+  let isAdmin = false;
   if (user) {
     const { data: profile } = await supabaseServer
       .from('profiles')
       .select('user_type')
       .eq('id', user.id)
       .single();
-    if (profile) userType = profile.user_type;
+    if (profile) {
+      userType = profile.user_type;
+      isAdmin = profile.user_type === 'admin';
+    }
   }
 
   let hasApplied = false;

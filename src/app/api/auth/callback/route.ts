@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { EmailOtpType } from '@supabase/supabase-js';
+import { getSafeRedirectUrl } from '@/lib/security';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -9,14 +10,9 @@ export async function GET(request: Request) {
   const token_hash = searchParams.get('token_hash');
   
   // Custom params passed in options.redirectTo
-  let next = searchParams.get('next') ?? '/dashboard';
+  const next = getSafeRedirectUrl(searchParams.get('next'), '/dashboard');
   const type = searchParams.get('type') as string | null;
   const role = searchParams.get('role') as string | null;
-
-  // Prevent open redirect
-  if (!next.startsWith('/')) {
-    next = '/dashboard';
-  }
 
   const cookieStore = await cookies();
   const supabase = createServerClient(

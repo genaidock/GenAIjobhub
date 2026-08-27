@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-const ADMIN_EMAIL = 'admin@genaijobhub.com';
-
 async function getAdminClient() {
   const cookieStore = await cookies();
   return createServerClient(
@@ -35,9 +33,15 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // 2. Strict Email Verification
-    if (user.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-      return NextResponse.json({ error: "Forbidden: Admin access only" }, { status: 403 });
+    // 2. Strict Database Role Verification
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('user_type')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || profile?.user_type !== 'admin') {
+      return NextResponse.json({ error: "Forbidden: Admin privileges required" }, { status: 403 });
     }
 
     // 3. Fetch pending jobs
@@ -53,7 +57,7 @@ export async function GET() {
 
   } catch (error: any) {
     console.error("Admin Fetch Pending Jobs Error:", error);
-    return NextResponse.json({ error: error.message || "Failed to fetch pending jobs" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch pending jobs" }, { status: 500 });
   }
 }
 
@@ -74,9 +78,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // 2. Strict Email Verification
-    if (user.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-      return NextResponse.json({ error: "Forbidden: Admin access only" }, { status: 403 });
+    // 2. Strict Database Role Verification
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('user_type')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || profile?.user_type !== 'admin') {
+      return NextResponse.json({ error: "Forbidden: Admin privileges required" }, { status: 403 });
     }
 
     // Determine target status

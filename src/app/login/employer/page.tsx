@@ -8,13 +8,14 @@ import { supabase } from '@/lib/supabase';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { COUNTRIES } from '@/lib/countries';
 import { FREE_EMAIL_DOMAINS } from '@/lib/free-domains';
+import { getSafeRedirectUrl } from '@/lib/security';
 
 type Mode = 'login' | 'signup' | 'otp';
 
 function EmployerAuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') ?? '/post-job';
+  const redirectTo = getSafeRedirectUrl(searchParams.get('redirect'), '/post-job');
 
   const [mode, setMode] = useState<Mode>('login');
   const [showPassword, setShowPassword] = useState(false);

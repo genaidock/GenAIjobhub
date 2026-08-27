@@ -6,13 +6,14 @@ import Link from 'next/link';
 import { ArrowLeft, Search, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Turnstile } from '@marsidev/react-turnstile';
+import { getSafeRedirectUrl } from '@/lib/security';
 
 type Mode = 'login' | 'signup' | 'otp';
 
 function SeekerAuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') ?? '/jobs';
+  const redirectTo = getSafeRedirectUrl(searchParams.get('redirect'), '/jobs');
 
   const [mode, setMode] = useState<Mode>('login');
   const [showPassword, setShowPassword] = useState(false);
