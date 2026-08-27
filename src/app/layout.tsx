@@ -6,6 +6,8 @@ import Footer from "@/components/Footer";
 import { AuthProvider } from "@/components/AuthProvider";
 import ProfileSetupModal from "@/components/ProfileSetupModal";
 import { Analytics } from "@vercel/analytics/react";
+import Script from "next/script";
+
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -53,6 +55,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning className={`${outfit.variable} font-sans antialiased bg-background text-foreground min-h-screen flex flex-col`} style={{ fontFamily: 'var(--font-outfit), system-ui, sans-serif' }}>
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7524010618497905"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
