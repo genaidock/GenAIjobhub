@@ -25,16 +25,16 @@ export default async function FreelanceBoard() {
     }
   );
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
   let isSeeker = false;
   let isEmployer = false;
   let userProposals: any[] = [];
 
-  if (session) {
+  if (user) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('user_type')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single();
     
     isSeeker = profile?.user_type === 'seeker';
@@ -44,7 +44,7 @@ export default async function FreelanceBoard() {
       const { data: proposals } = await supabase
         .from('proposals')
         .select('gig_id')
-        .eq('freelancer_id', session.user.id);
+        .eq('freelancer_id', user.id);
       
       if (proposals) {
         userProposals = proposals;
@@ -70,7 +70,7 @@ export default async function FreelanceBoard() {
           <p className="text-text-secondary text-lg mb-8 max-w-xl mx-auto">
             Short-term contracts, project-based work, and consulting opportunities.
           </p>
-          {(!session || isEmployer) ? (
+          {(!user || isEmployer) ? (
             <Link href="/post-gig" className="inline-block px-8 py-3 rounded-xl font-bold text-white border border-white/15 hover:bg-white/5 hover:border-white/25 transition-all backdrop-blur-sm">
               Post a Gig
             </Link>

@@ -2,15 +2,15 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 const ADMIN_EMAIL = 'admin@genaijobhub.com';
-const EXPECTED_SECRET = process.env.NEXT_PUBLIC_ADMIN_SECRET || 'genai-admin-key-2026';
+const EXPECTED_SECRET = process.env.ADMIN_SECRET;
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const key = searchParams.get('key');
 
-    if (key !== EXPECTED_SECRET) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!EXPECTED_SECRET || !key || key !== EXPECTED_SECRET) {
+      return NextResponse.json({ error: "Unauthorized: Invalid administrative key" }, { status: 401 });
     }
 
     const supabaseAdmin = createClient(

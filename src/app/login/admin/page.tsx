@@ -12,7 +12,6 @@ function AdminAuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const secretKey = searchParams.get('key');
-  const expectedSecret = process.env.NEXT_PUBLIC_ADMIN_SECRET || 'genai-admin-key-2026';
   
   const [email, setEmail] = useState('');
   const [otpToken, setOtpToken] = useState('');
@@ -21,8 +20,8 @@ function AdminAuthContent() {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  // If secret key is incorrect or missing, display a 404 fallback page to keep URL unpredictable
-  if (secretKey !== expectedSecret) {
+  // If secret key query param is missing, display a 404 fallback page to keep URL unpredictable
+  if (!secretKey) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
         <h1 className="text-6xl font-extrabold text-white tracking-tight mb-4">404</h1>

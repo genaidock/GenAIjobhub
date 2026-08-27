@@ -18,9 +18,9 @@ export async function POST(req: Request) {
       }
     );
 
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (authError || !user) {
       return NextResponse.json({ error: "You must be logged in to send a proposal." }, { status: 401 });
     }
 
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('user_type')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single();
 
     if (profile?.user_type !== 'seeker') {
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       .from('proposals')
       .insert({
         gig_id,
-        freelancer_id: session.user.id,
+        freelancer_id: user.id,
         cover_letter,
       })
       .select()

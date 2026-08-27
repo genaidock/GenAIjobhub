@@ -63,13 +63,17 @@ export async function PUT(req: Request) {
       .eq('id', user.id);
 
     if (updateError) {
-      return NextResponse.json({ error: updateError.message, code: updateError.code }, { status: 500 });
+      console.error('Profile update error:', updateError);
+      if (updateError.code === '23505') {
+        return NextResponse.json({ error: 'Username is already taken. Please choose another.' }, { status: 400 });
+      }
+      return NextResponse.json({ error: 'Failed to update profile. Please try again.' }, { status: 500 });
     }
 
     return NextResponse.json({ message: 'Profile updated successfully' }, { status: 200 });
 
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'An error occurred';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('Profile update exception:', err);
+    return NextResponse.json({ error: 'An unexpected error occurred while updating profile.' }, { status: 500 });
   }
 }

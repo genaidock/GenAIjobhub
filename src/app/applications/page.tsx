@@ -21,8 +21,8 @@ export default async function ApplicationsPage() {
     }
   );
 
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
     redirect('/login');
   }
 
@@ -30,7 +30,7 @@ export default async function ApplicationsPage() {
   const { data: profile } = await supabase
     .from('profiles')
     .select('user_type')
-    .eq('id', session.user.id)
+    .eq('id', user.id)
     .single();
 
   if (profile?.user_type !== 'seeker') {
@@ -52,7 +52,7 @@ export default async function ApplicationsPage() {
         is_remote
       )
     `)
-    .eq('seeker_id', session.user.id)
+    .eq('seeker_id', user.id)
     .order('created_at', { ascending: false });
 
   if (error) {

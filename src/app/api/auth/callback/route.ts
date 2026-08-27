@@ -69,24 +69,28 @@ export async function GET(request: Request) {
         .eq('id', user.id)
         .single();
 
-      // Prioritize the role passed in the URL, otherwise fallback to metadata
-      const targetRole = role || user.user_metadata?.user_type;
+      // Allowed self-assignable roles on signup
+      const ALLOWED_USER_ROLES = ['seeker', 'employer'];
+      
+      // Determine requested role from URL or metadata
+      const candidateRole = (role && ALLOWED_USER_ROLES.includes(role)) 
+        ? role 
+        : (user.user_metadata?.user_type && ALLOWED_USER_ROLES.includes(user.user_metadata.user_type) ? user.user_metadata.user_type : 'seeker');
 
-      if (targetRole && profile?.user_type !== targetRole) {
-        // Update user metadata if it wasn't set
+      // Only assign initial role if user does not already have a defined profile role
+      if (!profile?.user_type) {
         if (!user.user_metadata?.user_type) {
           await supabase.auth.updateUser({
-            data: { user_type: targetRole }
+            data: { user_type: candidateRole }
           });
         }
         
         // Sync to profiles table since the insert trigger missed it for OAuth
-        // Need to use adminClient because RLS doesn't allow users to update profiles directly
         const { createAdminClient } = await import('@/lib/supabase');
         const adminClient = createAdminClient();
         await adminClient
           .from('profiles')
-          .update({ user_type: targetRole })
+          .update({ user_type: candidateRole })
           .eq('id', user.id);
       }
     }
